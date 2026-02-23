@@ -546,10 +546,12 @@ export default function Dashboard({ activeTab }) {
                                 <label className="label">Room Required</label>
                                 <select
                                     className="input-field"
-                                    value={editData.room || 'Video Studio'}
+                                    value={editData.room || 'Radio Studio 1'}
                                     onChange={(e) => setEditData({ ...editData, room: e.target.value })}
                                 >
-                                    <option value="Video Studio">Video Studio</option>
+                                    <option value="Radio Studio 1">Radio Studio 1</option>
+                                    <option value="Radio Studio 2">Radio Studio 2</option>
+                                    <option value="Radio Studio 3">Radio Studio 3</option>
                                     <option value="Podcast Studio">Podcast Studio</option>
                                     <option value="PCR Radio Room">PCR Radio Room</option>
                                     <option value="Praise Radio Room">Praise Radio Room</option>
