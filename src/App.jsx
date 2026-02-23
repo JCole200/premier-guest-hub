@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Calendar, Users, PlusCircle, LayoutDashboard, Settings } from 'lucide-react';
+import { Search, Calendar, PlusCircle, LayoutDashboard } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import Dashboard from './components/Dashboard';
 import GuestFormModal from './components/GuestFormModal';
@@ -13,14 +13,13 @@ function App() {
     <div className="app-container">
       {/* Sidebar Navigation */}
       <aside className="sidebar">
-        <div style={{ marginBottom: '2.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ width: '40px', height: '40px', background: 'var(--color-primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-            <Users size={24} />
-          </div>
-          <div>
-            <h1 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--color-primary-dark)' }}>Premier</h1>
-            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Guest Hub</p>
-          </div>
+        <div style={{ marginBottom: '2.5rem' }}>
+          <img
+            src="/premier-logo.png"
+            alt="Premier"
+            style={{ width: '150px', height: 'auto', display: 'block' }}
+          />
+          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.4rem', fontWeight: '500', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Guest Hub</p>
         </div>
 
         <nav style={{ flex: 1 }}>
