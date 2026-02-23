@@ -5,6 +5,7 @@ import { useAppContext } from '../AppContext';
 export default function GuestFormModal({ onClose }) {
     const { addGuest } = useAppContext();
     const [formData, setFormData] = useState({
+        submittedBy: '',
         name: '',
         team: 'Radio',
         room: 'Radio Studio 1',
@@ -115,6 +116,18 @@ export default function GuestFormModal({ onClose }) {
                 </div>
 
                 <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className="label">Your Name</label>
+                        <input
+                            type="text"
+                            className="input-field"
+                            placeholder="Your name or department"
+                            value={formData.submittedBy}
+                            onChange={(e) => setFormData({ ...formData, submittedBy: e.target.value })}
+                            required
+                        />
+                    </div>
+
                     <div className="form-group">
                         <label className="label">Guest Name</label>
                         <input

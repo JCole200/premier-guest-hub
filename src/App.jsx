@@ -122,23 +122,6 @@ function App() {
             </div>
           )}
 
-          {!isLoggedIn && (
-            <div className="user-selector">
-              <div className="avatar">
-                {currentUser.split(' ').map(n => n[0]).join('')}
-              </div>
-              <select
-                value={currentUser}
-                onChange={(e) => setCurrentUser(e.target.value)}
-                className="input-field"
-                style={{ padding: '0.4rem', fontSize: '0.85rem' }}
-              >
-                <option value="Sarah Connor">Sarah Connor (Radio)</option>
-                <option value="Mike Tyson">Mike Tyson (Digital)</option>
-                <option value="Alice Wonderland">Alice Wonderland (Mag)</option>
-              </select>
-            </div>
-          )}
         </div>
       </aside>
 

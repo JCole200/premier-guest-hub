@@ -14,12 +14,14 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialGuests;
   });
 
-  const [currentUser, setCurrentUser] = useState('Sarah Connor');
   const [isAdmin, setIsAdmin] = useState(() => {
     return localStorage.getItem('isAdmin') === 'true';
   });
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return localStorage.getItem('isLoggedIn') === 'true';
+  });
+  const [currentUser, setCurrentUser] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true' ? 'Admin User' : '';
   });
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -39,7 +41,7 @@ export const AppProvider = ({ children }) => {
   const logout = () => {
     setIsAdmin(false);
     setIsLoggedIn(false);
-    setCurrentUser('Sarah Connor');
+    setCurrentUser('');
     localStorage.removeItem('isAdmin');
     localStorage.removeItem('isLoggedIn');
   };
@@ -59,7 +61,15 @@ export const AppProvider = ({ children }) => {
   }, [guests]);
 
   const addGuest = (guest) => {
-    setGuests(prev => [{ ...guest, id: Date.now(), timestamp: new Date().toISOString(), createdBy: currentUser }, ...prev]);
+    const bookerName = guest.submittedBy || 'Staff Member';
+    const newGuest = {
+      ...guest,
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      createdBy: bookerName
+    };
+    delete newGuest.submittedBy;
+    setGuests(prev => [newGuest, ...prev]);
   };
 
   const updateGuestStatus = (id, status, extraData = {}) => {
