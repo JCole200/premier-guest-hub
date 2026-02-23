@@ -46,13 +46,24 @@ export default function Dashboard({ activeTab }) {
     const confirmedGuests = filteredGuests.filter(g => g.status === 'Confirmed');
 
     const handleConfirmClick = (id) => {
-        setCrossPolModal({ isOpen: true, guestId: id });
+        const guest = guests.find(g => g.id === id);
+        setCrossPolModal({ isOpen: true, guestId: id, isCurrentlyTBC: guest?.isTBC });
+        setCrossPolData({ crossPollination: null, notes: '', confirmDate: guest?.eventDate?.split('T')[0] || new Date().toISOString().split('T')[0] });
     };
 
     const handleConfirmFinal = (e) => {
         e.preventDefault();
-        updateGuestStatus(crossPolModal.guestId, 'Confirmed', crossPolData);
-        setCrossPolModal({ isOpen: false, guestId: null });
+        const guest = guests.find(g => g.id === crossPolModal.guestId);
+
+        // Final force check for date if it was TBC
+        const finalData = { ...crossPolData, isTBC: false };
+        if (crossPolModal.isCurrentlyTBC) {
+            finalData.eventDate = new Date(crossPolData.confirmDate + 'T12:00:00').toISOString();
+        }
+        delete finalData.confirmDate;
+
+        updateGuestStatus(crossPolModal.guestId, 'Confirmed', finalData);
+        setCrossPolModal({ isOpen: false, guestId: null, isCurrentlyTBC: false });
         setCrossPolData({ crossPollination: null, notes: '' });
     };
 
@@ -63,8 +74,20 @@ export default function Dashboard({ activeTab }) {
 
     const handleEditSave = (e) => {
         e.preventDefault();
+        if (editData.status === 'Confirmed' && editData.isTBC) {
+            alert('Confirmed bookings must have a specific date. Please uncheck TBC.');
+            return;
+        }
         updateGuest(editData);
         setEditModal({ isOpen: false, guest: null });
+    };
+
+    const handleEditStatusChange = (newStatus) => {
+        if (newStatus === 'Confirmed') {
+            setEditData({ ...editData, status: newStatus, isTBC: false });
+        } else {
+            setEditData({ ...editData, status: newStatus });
+        }
     };
 
     const getCalendarDays = () => {
@@ -390,7 +413,12 @@ export default function Dashboard({ activeTab }) {
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
                                 {getDepartmentBadge(guest.team)}
-                                {guest.eventDate && (
+                                {guest.isTBC ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#854d0e', backgroundColor: '#fef9c3', padding: '0.25rem 0.6rem', borderRadius: '99px', fontWeight: '600' }}>
+                                        <Clock size={13} />
+                                        Date TBC
+                                    </div>
+                                ) : guest.eventDate && (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg-light)', padding: '0.25rem 0.6rem', borderRadius: '99px' }}>
                                         <CalendarDays size={13} />
                                         {format(parseISO(guest.eventDate), 'EEE d MMM yyyy')}
@@ -441,10 +469,26 @@ export default function Dashboard({ activeTab }) {
                             <button onClick={() => setCrossPolModal({ isOpen: false, guestId: null })} className="btn-outline" style={{ border: 'none', padding: '0.25rem' }}><X size={20} /></button>
                         </div>
                         <p style={{ marginBottom: '1.5rem', fontSize: '0.95rem', color: 'var(--color-text-muted)' }}>
-                            Does this guest have additional availability for other departments (Cross-Pollination)?
+                            {crossPolModal.isCurrentlyTBC ?
+                                <span>This request was <strong>TBC</strong>. Please select the final confirmed date:</span> :
+                                <span>Does this guest have additional availability for other departments (Cross-Pollination)?</span>
+                            }
                         </p>
 
                         <form onSubmit={handleConfirmFinal}>
+                            {crossPolModal.isCurrentlyTBC && (
+                                <div className="form-group animate-fade-in" style={{ backgroundColor: '#fefce8', padding: '1rem', borderRadius: '8px', border: '1px solid #fde047', marginBottom: '1.5rem' }}>
+                                    <label className="label">Confirmed Event Date</label>
+                                    <input
+                                        type="date"
+                                        className="input-field"
+                                        value={crossPolData.confirmDate}
+                                        onChange={(e) => setCrossPolData({ ...crossPolData, confirmDate: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            )}
+
                             <div className="form-group" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                                 <label className="toggle-switch">
                                     <input
@@ -534,7 +578,7 @@ export default function Dashboard({ activeTab }) {
                                     <select
                                         className="input-field"
                                         value={editData.status || 'Pending'}
-                                        onChange={(e) => setEditData({ ...editData, status: e.target.value })}
+                                        onChange={(e) => handleEditStatusChange(e.target.value)}
                                     >
                                         <option value="Pending">Pending</option>
                                         <option value="Confirmed">Confirmed</option>
@@ -560,12 +604,27 @@ export default function Dashboard({ activeTab }) {
                             </div>
 
                             <div className="form-group">
-                                <label className="label">Event Date</label>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <label className="label" style={{ marginBottom: 0 }}>Event Date</label>
+                                    {editData.status === 'Pending' && (
+                                        <label style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={!!editData.isTBC}
+                                                onChange={(e) => setEditData({ ...editData, isTBC: e.target.checked })}
+                                            />
+                                            Date TBC
+                                        </label>
+                                    )}
+                                </div>
                                 <input
                                     type="date"
                                     className="input-field"
-                                    value={editData.eventDate ? editData.eventDate.split('T')[0] : ''}
-                                    onChange={(e) => setEditData({ ...editData, eventDate: new Date(e.target.value + 'T12:00:00').toISOString() })}
+                                    value={editData.isTBC ? '' : (editData.eventDate ? editData.eventDate.split('T')[0] : '')}
+                                    onChange={(e) => setEditData({ ...editData, eventDate: new Date(e.target.value + 'T12:00:00').toISOString(), isTBC: false })}
+                                    disabled={!!editData.isTBC}
+                                    required={!editData.isTBC}
+                                    style={{ opacity: editData.isTBC ? 0.5 : 1 }}
                                 />
                             </div>
 

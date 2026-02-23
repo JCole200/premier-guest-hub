@@ -10,6 +10,7 @@ export default function GuestFormModal({ onClose }) {
         room: 'Radio Studio 1',
         slot: '',
         status: 'Pending',
+        isTBC: false,
         crossPollination: null,
         notes: '',
         eventDate: new Date().toISOString().split('T')[0],
@@ -19,12 +20,24 @@ export default function GuestFormModal({ onClose }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (formData.status === 'Confirmed' && formData.isTBC) {
+            alert('Confirmed guests must have a specific date. Please uncheck TBC and select a date.');
+            return;
+        }
         if (formData.status === 'Confirmed' && formData.crossPollination === null) {
             setShowCrossPol(true);
             return; // Wait for cross pollination answer
         }
         addGuest(formData);
         onClose();
+    };
+
+    const handleStatusChange = (newStatus) => {
+        if (newStatus === 'Confirmed') {
+            setFormData({ ...formData, status: newStatus, isTBC: false });
+        } else {
+            setFormData({ ...formData, status: newStatus });
+        }
     };
 
     const submitFinal = (e) => {
@@ -145,13 +158,27 @@ export default function GuestFormModal({ onClose }) {
                         </select>
                     </div>
                     <div className="form-group">
-                        <label className="label">Event Date</label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <label className="label" style={{ marginBottom: 0 }}>Event Date</label>
+                            {formData.status === 'Pending' && (
+                                <label style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.isTBC}
+                                        onChange={(e) => setFormData({ ...formData, isTBC: e.target.checked })}
+                                    />
+                                    Date TBC
+                                </label>
+                            )}
+                        </div>
                         <input
                             type="date"
                             className="input-field"
-                            value={formData.eventDate.split('T')[0]}
-                            onChange={(e) => setFormData({ ...formData, eventDate: new Date(e.target.value).toISOString() })}
-                            required
+                            value={formData.isTBC ? '' : formData.eventDate.split('T')[0]}
+                            onChange={(e) => setFormData({ ...formData, eventDate: new Date(e.target.value + 'T12:00:00').toISOString(), isTBC: false })}
+                            disabled={formData.isTBC}
+                            required={!formData.isTBC}
+                            style={{ opacity: formData.isTBC ? 0.5 : 1 }}
                         />
                     </div>
 
@@ -172,7 +199,7 @@ export default function GuestFormModal({ onClose }) {
                         <select
                             className="input-field"
                             value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                            onChange={(e) => handleStatusChange(e.target.value)}
                         >
                             <option value="Pending">Pending (Chasing)</option>
                             <option value="Confirmed">Confirmed</option>
