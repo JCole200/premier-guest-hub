@@ -19,7 +19,7 @@ function App() {
             alt="Premier"
             style={{ width: '150px', height: 'auto', display: 'block' }}
           />
-          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.4rem', fontWeight: '500', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Guest Hub</p>
+          <p style={{ fontSize: '1rem', color: '#000000', marginTop: '0.4rem', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Guest Hub</p>
         </div>
 
         <nav style={{ flex: 1 }}>
