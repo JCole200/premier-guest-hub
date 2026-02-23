@@ -282,6 +282,16 @@ export default function Dashboard({ activeTab }) {
                                     </div>
                                 </div>
 
+                                {selectedGuest.room && (
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                        <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🚪</div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Room Required</div>
+                                            <div style={{ fontWeight: '500', marginTop: '2px' }}>{selectedGuest.room}</div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {selectedGuest.eventDate && (
                                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                                         <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -387,6 +397,13 @@ export default function Dashboard({ activeTab }) {
                             <strong>Slot requested:</strong><br />
                             {guest.slot}
                         </div>
+
+                        {guest.room && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                                <span style={{ fontSize: '1rem' }}>🚪</span>
+                                <strong>Room:</strong> {guest.room}
+                            </div>
+                        )}
 
                         <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem', paddingTop: '1rem' }}>
                             <button
@@ -516,6 +533,21 @@ export default function Dashboard({ activeTab }) {
                                         <option value="Confirmed">Confirmed</option>
                                     </select>
                                 </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="label">Room Required</label>
+                                <select
+                                    className="input-field"
+                                    value={editData.room || 'Video Studio'}
+                                    onChange={(e) => setEditData({ ...editData, room: e.target.value })}
+                                >
+                                    <option value="Video Studio">Video Studio</option>
+                                    <option value="Podcast Studio">Podcast Studio</option>
+                                    <option value="PCR Radio Room">PCR Radio Room</option>
+                                    <option value="Praise Radio Room">Praise Radio Room</option>
+                                    <option value="Gospel Room">Gospel Room</option>
+                                </select>
                             </div>
 
                             <div className="form-group">
