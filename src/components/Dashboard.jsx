@@ -125,6 +125,12 @@ export default function Dashboard({ activeTab }) {
     const goToToday = () => setCurrentDate(new Date());
 
     if (activeTab === 'calendar') {
+        const today = new Date();
+        const tomorrow = addDays(today, 1);
+
+        const guestsToday = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), today));
+        const guestsTomorrow = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), tomorrow));
+
         return (
             <div className="animate-fade-in">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -188,75 +194,129 @@ export default function Dashboard({ activeTab }) {
                     </div>
                 </div>
 
-                {filteredGuests.length === 0 && (
-                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                        <SearchX size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                        <p>No confirmed guests match your search.</p>
-                    </div>
-                )}
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', marginBottom: '0', backgroundColor: 'var(--color-bg-light)', padding: '1rem 0', borderTopLeftRadius: 'var(--border-radius)', borderTopRightRadius: 'var(--border-radius)' }}>
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-                        <div key={d} style={{ textAlign: 'center', fontWeight: '600', color: 'var(--color-text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            {d}
-                        </div>
-                    ))}
-                </div>
-
-                <div className="calendar" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-                    {calendarDays.map((date, i) => {
-                        const dayGuests = confirmedGuests.filter(g => {
-                            const eventD = g.eventDate ? parseISO(g.eventDate) : (g.timestamp ? parseISO(g.timestamp) : new Date());
-                            return isSameDay(eventD, date);
-                        });
-                        const isCurrentMonth = isSameMonth(date, currentDate);
-
-                        return (
-                            <div key={i} className={`calendar-day card`} style={{
-                                padding: '0.5rem',
-                                border: 'none',
-                                borderRadius: 0,
-                                opacity: isCurrentMonth ? 1 : 0.4,
-                                backgroundColor: isCurrentMonth ? 'white' : '#f9fafb'
-                            }}>
-                                <div className="calendar-day-header" style={{ fontWeight: isSameDay(date, new Date()) ? 'bold' : 'normal', color: isSameDay(date, new Date()) ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>
-                                    {format(date, viewMode === 'month' && date.getDate() === 1 ? 'MMM d' : 'd')}
-                                </div>
-                                <div style={{ minHeight: viewMode === 'month' ? '60px' : '120px', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                    {dayGuests.map(g => (
-                                        <div
-                                            key={g.id}
-                                            className="calendar-event"
-                                            style={{
-                                                backgroundColor: g.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
-                                                    g.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
-                                                        g.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
-                                                color: g.team === 'Radio' ? '#1d4ed8' :
-                                                    g.team === 'Digital' ? '#c2410c' :
-                                                        g.team === 'Magazine' ? '#15803d' : '#6d28d9',
-                                                borderLeft: `3px solid ${g.team === 'Radio' ? '#3b82f6' : g.team === 'Digital' ? '#f97316' : g.team === 'Magazine' ? '#22c55e' : '#7c3aed'}`,
-                                                cursor: 'pointer',
-                                            }}
-                                            title={`${g.slot} - Request by ${g.createdBy}`}
-                                            onClick={() => setSelectedGuest(g)}
-                                        >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</strong>
-                                                {viewMode === 'week' && getDepartmentIcon(g.team)}
-                                            </div>
-                                            {viewMode === 'week' && <span style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginTop: '2px' }}>{g.slot}</span>}
-
-                                            {viewMode === 'week' && g.crossPollination && (
-                                                <div style={{ marginTop: '0.25rem', fontSize: '0.65rem', backgroundColor: 'rgba(255,255,255,0.7)', padding: '2px 4px', borderRadius: '2px' }}>
-                                                    💡 {g.notes}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
+                <div className="calendar-layout-grid">
+                    <div className="calendar-main-area">
+                        {filteredGuests.length === 0 && (
+                            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                                <SearchX size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                                <p>No confirmed guests match your search.</p>
                             </div>
-                        );
-                    })}
+                        )}
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', marginBottom: '0', backgroundColor: 'var(--color-bg-light)', padding: '1rem 0', borderTopLeftRadius: 'var(--border-radius)', borderTopRightRadius: 'var(--border-radius)' }}>
+                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
+                                <div key={d} style={{ textAlign: 'center', fontWeight: '600', color: 'var(--color-text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    {d}
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="calendar" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+                            {calendarDays.map((date, i) => {
+                                const dayGuests = confirmedGuests.filter(g => {
+                                    const eventD = g.eventDate ? parseISO(g.eventDate) : (g.timestamp ? parseISO(g.timestamp) : new Date());
+                                    return isSameDay(eventD, date);
+                                });
+                                const isCurrentMonth = isSameMonth(date, currentDate);
+
+                                return (
+                                    <div key={i} className={`calendar-day card`} style={{
+                                        padding: '0.5rem',
+                                        border: 'none',
+                                        borderRadius: 0,
+                                        opacity: isCurrentMonth ? 1 : 0.4,
+                                        backgroundColor: isCurrentMonth ? 'white' : '#f9fafb'
+                                    }}>
+                                        <div className="calendar-day-header" style={{ fontWeight: isSameDay(date, new Date()) ? 'bold' : 'normal', color: isSameDay(date, new Date()) ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>
+                                            {format(date, viewMode === 'month' && date.getDate() === 1 ? 'MMM d' : 'd')}
+                                        </div>
+                                        <div style={{ minHeight: viewMode === 'month' ? '60px' : '120px', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                            {dayGuests.map(g => (
+                                                <div
+                                                    key={g.id}
+                                                    className="calendar-event"
+                                                    style={{
+                                                        backgroundColor: g.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
+                                                            g.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
+                                                                g.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
+                                                        color: g.team === 'Radio' ? '#1d4ed8' :
+                                                            g.team === 'Digital' ? '#c2410c' :
+                                                                g.team === 'Magazine' ? '#15803d' : '#6d28d9',
+                                                        borderLeft: `3px solid ${g.team === 'Radio' ? '#3b82f6' : g.team === 'Digital' ? '#f97316' : g.team === 'Magazine' ? '#22c55e' : '#7c3aed'}`,
+                                                        cursor: 'pointer',
+                                                    }}
+                                                    title={`${g.slot} - Request by ${g.createdBy}`}
+                                                    onClick={() => setSelectedGuest(g)}
+                                                >
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                        <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</strong>
+                                                        {viewMode === 'week' && getDepartmentIcon(g.team)}
+                                                    </div>
+                                                    {viewMode === 'week' && <span style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginTop: '2px' }}>{g.slot}</span>}
+
+                                                    {viewMode === 'week' && g.crossPollination && (
+                                                        <div style={{ marginTop: '0.25rem', fontSize: '0.65rem', backgroundColor: 'rgba(255,255,255,0.7)', padding: '2px 4px', borderRadius: '2px' }}>
+                                                            💡 {g.notes}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="calendar-side-panel">
+                        <div className="side-panel-section">
+                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary-dark)', fontSize: '0.95rem' }}>
+                                <span style={{ fontSize: '1.2rem' }}>🎯</span> {isSameDay(currentDate, new Date()) ? "In Today" : `Who's in on ${format(new Date(), 'do MMM')}`}
+                            </h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {guestsToday.length === 0 ? (
+                                    <div style={{ padding: '1rem', background: '#f3f4f6', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+                                        No guests confirmed for today.
+                                    </div>
+                                ) : (
+                                    guestsToday.map(g => (
+                                        <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                                                <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
+                                                {getDepartmentIcon(g.team)}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.slot}</div>
+                                            <div style={{ marginTop: '0.5rem' }}>{getDepartmentBadge(g.team)}</div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="side-panel-section" style={{ marginTop: '2rem' }}>
+                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary-dark)', fontSize: '0.95rem' }}>
+                                <span style={{ fontSize: '1.2rem' }}>📅</span> {isSameDay(currentDate, new Date()) ? "In Tomorrow" : `Who's in tomorrow`}
+                            </h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {guestsTomorrow.length === 0 ? (
+                                    <div style={{ padding: '1rem', background: '#f3f4f6', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+                                        No guests confirmed for tomorrow.
+                                    </div>
+                                ) : (
+                                    guestsTomorrow.map(g => (
+                                        <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                                                <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
+                                                {getDepartmentIcon(g.team)}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.slot}</div>
+                                            <div style={{ marginTop: '0.5rem' }}>{getDepartmentBadge(g.team)}</div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Guest Detail Modal */}
