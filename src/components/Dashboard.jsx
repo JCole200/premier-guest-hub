@@ -45,6 +45,11 @@ export default function Dashboard({ activeTab }) {
     const pendingGuests = filteredGuests.filter(g => g.status === 'Pending');
     const confirmedGuests = filteredGuests.filter(g => g.status === 'Confirmed');
 
+    const today = new Date();
+    const tomorrow = addDays(today, 1);
+    const guestsToday = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), today));
+    const guestsTomorrow = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), tomorrow));
+
     const handleConfirmClick = (id) => {
         const guest = guests.find(g => g.id === id);
         setCrossPolModal({ isOpen: true, guestId: id, isCurrentlyTBC: guest?.isTBC });
@@ -124,403 +129,411 @@ export default function Dashboard({ activeTab }) {
 
     const goToToday = () => setCurrentDate(new Date());
 
-    if (activeTab === 'calendar') {
-        const today = new Date();
-        const tomorrow = addDays(today, 1);
+    return (
+        <div className="animate-fade-in">
+            {activeTab === 'calendar' ? (
+                <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                        <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600' }}>Master Schedule (Confirmed Guests)</h3>
 
-        const guestsToday = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), today));
-        const guestsTomorrow = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), tomorrow));
-
-        return (
-            <div className="animate-fade-in">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                    <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600' }}>Master Schedule (Confirmed Guests)</h3>
-
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
-                            <button
-                                className={`btn ${viewMode === 'week' ? 'active' : ''}`}
-                                style={{ borderRadius: 0, border: 'none', background: viewMode === 'week' ? 'var(--color-bg-light)' : 'transparent', borderRight: '1px solid #e5e7eb' }}
-                                onClick={() => setViewMode('week')}
-                            >
-                                Week
-                            </button>
-                            <button
-                                className={`btn ${viewMode === 'month' ? 'active' : ''}`}
-                                style={{ borderRadius: 0, border: 'none', background: viewMode === 'month' ? 'var(--color-bg-light)' : 'transparent' }}
-                                onClick={() => setViewMode('month')}
-                            >
-                                Month
-                            </button>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <button onClick={prevPeriod} className="btn-outline" style={{ padding: '0.4rem', border: 'none' }}><ChevronLeft size={20} /></button>
-                            <button onClick={goToToday} className="btn-outline" style={{ border: '1px solid #e5e7eb' }}>Today</button>
-                            <button onClick={nextPeriod} className="btn-outline" style={{ padding: '0.4rem', border: 'none' }}><ChevronRight size={20} /></button>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            {viewMode === 'month' ? (
-                                <>
-                                    <select
-                                        className="input-field"
-                                        style={{ padding: '0.4rem', width: 'auto' }}
-                                        value={getMonth(currentDate)}
-                                        onChange={(e) => setCurrentDate(setMonth(currentDate, parseInt(e.target.value)))}
-                                    >
-                                        {Array.from({ length: 12 }).map((_, i) => (
-                                            <option key={i} value={i}>{format(new Date(2024, i, 1), 'MMMM')}</option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        className="input-field"
-                                        style={{ padding: '0.4rem', width: 'auto' }}
-                                        value={getYear(currentDate)}
-                                        onChange={(e) => setCurrentDate(setYear(currentDate, parseInt(e.target.value)))}
-                                    >
-                                        {Array.from({ length: 7 }).map((_, i) => {
-                                            const year = 2024 + i; // 2024 to 2030
-                                            return <option key={year} value={year}>{year}</option>;
-                                        })}
-                                    </select>
-                                </>
-                            ) : (
-                                <h4 style={{ width: '180px', textAlign: 'right', fontWeight: '600', color: 'var(--color-text-main)' }}>
-                                    {`${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} - ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}`}
-                                </h4>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="calendar-layout-grid">
-                    <div className="calendar-main-area">
-                        {filteredGuests.length === 0 && (
-                            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                                <SearchX size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                                <p>No confirmed guests match your search.</p>
-                            </div>
-                        )}
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', marginBottom: '0', backgroundColor: 'var(--color-bg-light)', padding: '1rem 0', borderTopLeftRadius: 'var(--border-radius)', borderTopRightRadius: 'var(--border-radius)' }}>
-                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-                                <div key={d} style={{ textAlign: 'center', fontWeight: '600', color: 'var(--color-text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                    {d}
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="calendar" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-                            {calendarDays.map((date, i) => {
-                                const dayGuests = confirmedGuests.filter(g => {
-                                    const eventD = g.eventDate ? parseISO(g.eventDate) : (g.timestamp ? parseISO(g.timestamp) : new Date());
-                                    return isSameDay(eventD, date);
-                                });
-                                const isCurrentMonth = isSameMonth(date, currentDate);
-
-                                return (
-                                    <div key={i} className={`calendar-day card`} style={{
-                                        padding: '0.5rem',
-                                        border: 'none',
-                                        borderRadius: 0,
-                                        opacity: isCurrentMonth ? 1 : 0.4,
-                                        backgroundColor: isCurrentMonth ? 'white' : '#f9fafb'
-                                    }}>
-                                        <div className="calendar-day-header" style={{ fontWeight: isSameDay(date, new Date()) ? 'bold' : 'normal', color: isSameDay(date, new Date()) ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>
-                                            {format(date, viewMode === 'month' && date.getDate() === 1 ? 'MMM d' : 'd')}
-                                        </div>
-                                        <div style={{ minHeight: viewMode === 'month' ? '60px' : '120px', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                            {dayGuests.map(g => (
-                                                <div
-                                                    key={g.id}
-                                                    className="calendar-event"
-                                                    style={{
-                                                        backgroundColor: g.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
-                                                            g.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
-                                                                g.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
-                                                        color: g.team === 'Radio' ? '#1d4ed8' :
-                                                            g.team === 'Digital' ? '#c2410c' :
-                                                                g.team === 'Magazine' ? '#15803d' : '#6d28d9',
-                                                        borderLeft: `3px solid ${g.team === 'Radio' ? '#3b82f6' : g.team === 'Digital' ? '#f97316' : g.team === 'Magazine' ? '#22c55e' : '#7c3aed'}`,
-                                                        cursor: 'pointer',
-                                                    }}
-                                                    title={`${g.slot} - Request by ${g.createdBy}`}
-                                                    onClick={() => setSelectedGuest(g)}
-                                                >
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                        <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</strong>
-                                                        {viewMode === 'week' && getDepartmentIcon(g.team)}
-                                                    </div>
-                                                    {viewMode === 'week' && <span style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginTop: '2px' }}>{g.slot}</span>}
-
-                                                    {viewMode === 'week' && g.crossPollination && (
-                                                        <div style={{ marginTop: '0.25rem', fontSize: '0.65rem', backgroundColor: 'rgba(255,255,255,0.7)', padding: '2px 4px', borderRadius: '2px' }}>
-                                                            💡 {g.notes}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    <div className="calendar-side-panel">
-                        <div className="side-panel-section">
-                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary-dark)', fontSize: '0.95rem' }}>
-                                <span style={{ fontSize: '1.2rem' }}>🎯</span> {isSameDay(currentDate, new Date()) ? "In Today" : `Who's in on ${format(new Date(), 'do MMM')}`}
-                            </h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                {guestsToday.length === 0 ? (
-                                    <div style={{ padding: '1rem', background: '#f3f4f6', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-                                        No guests confirmed for today.
-                                    </div>
-                                ) : (
-                                    guestsToday.map(g => (
-                                        <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-                                                <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
-                                                {getDepartmentIcon(g.team)}
-                                            </div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.slot}</div>
-                                            <div style={{ marginTop: '0.5rem' }}>{getDepartmentBadge(g.team)}</div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="side-panel-section" style={{ marginTop: '2rem' }}>
-                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary-dark)', fontSize: '0.95rem' }}>
-                                <span style={{ fontSize: '1.2rem' }}>📅</span> {isSameDay(currentDate, new Date()) ? "In Tomorrow" : `Who's in tomorrow`}
-                            </h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                {guestsTomorrow.length === 0 ? (
-                                    <div style={{ padding: '1rem', background: '#f3f4f6', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
-                                        No guests confirmed for tomorrow.
-                                    </div>
-                                ) : (
-                                    guestsTomorrow.map(g => (
-                                        <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-                                                <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
-                                                {getDepartmentIcon(g.team)}
-                                            </div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.slot}</div>
-                                            <div style={{ marginTop: '0.5rem' }}>{getDepartmentBadge(g.team)}</div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Guest Detail Modal */}
-                {selectedGuest && (
-                    <div className="modal-overlay" onClick={() => setSelectedGuest(null)}>
-                        <div
-                            className="modal-content animate-fade-in"
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                                borderTop: `5px solid ${selectedGuest.team === 'Radio' ? '#3b82f6' :
-                                    selectedGuest.team === 'Digital' ? '#f97316' :
-                                        selectedGuest.team === 'Magazine' ? '#22c55e' : '#7c3aed'
-                                    }`,
-                                maxWidth: '520px',
-                            }}
-                        >
-                            {/* Header */}
-                            <div className="modal-header">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{
-                                        width: '44px', height: '44px', borderRadius: '50%',
-                                        background: selectedGuest.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
-                                            selectedGuest.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
-                                                selectedGuest.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        color: selectedGuest.team === 'Radio' ? '#1d4ed8' :
-                                            selectedGuest.team === 'Digital' ? '#c2410c' :
-                                                selectedGuest.team === 'Magazine' ? '#15803d' : '#6d28d9',
-                                    }}>
-                                        {getDepartmentIcon(selectedGuest.team)}
-                                    </div>
-                                    <div>
-                                        <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.1rem' }}>{selectedGuest.name}</h3>
-                                        {getDepartmentBadge(selectedGuest.team)}
-                                    </div>
-                                </div>
-                                <button onClick={() => setSelectedGuest(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
-                                    <X size={22} />
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                                <button
+                                    className={`btn ${viewMode === 'week' ? 'active' : ''}`}
+                                    style={{ borderRadius: 0, border: 'none', background: viewMode === 'week' ? 'var(--color-bg-light)' : 'transparent', borderRight: '1px solid #e5e7eb' }}
+                                    onClick={() => setViewMode('week')}
+                                >
+                                    Week
+                                </button>
+                                <button
+                                    className={`btn ${viewMode === 'month' ? 'active' : ''}`}
+                                    style={{ borderRadius: 0, border: 'none', background: viewMode === 'month' ? 'var(--color-bg-light)' : 'transparent' }}
+                                    onClick={() => setViewMode('month')}
+                                >
+                                    Month
                                 </button>
                             </div>
 
-                            {/* Detail Rows */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginTop: '1.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <button onClick={prevPeriod} className="btn-outline" style={{ padding: '0.4rem', border: 'none' }}><ChevronLeft size={20} /></button>
+                                <button onClick={goToToday} className="btn-outline" style={{ border: '1px solid #e5e7eb' }}>Today</button>
+                                <button onClick={nextPeriod} className="btn-outline" style={{ padding: '0.4rem', border: 'none' }}><ChevronRight size={20} /></button>
+                            </div>
 
-                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                    <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <MapPin size={15} style={{ color: 'var(--color-primary)' }} />
-                                    </div>
-                                    <div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Slot</div>
-                                        <div style={{ fontWeight: '500', marginTop: '2px' }}>{selectedGuest.slot}</div>
-                                    </div>
-                                </div>
-
-                                {selectedGuest.room && (
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                        <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🚪</div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Room Required</div>
-                                            <div style={{ fontWeight: '500', marginTop: '2px' }}>{selectedGuest.room}</div>
-                                        </div>
-                                    </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                {viewMode === 'month' ? (
+                                    <>
+                                        <select
+                                            className="input-field"
+                                            style={{ padding: '0.4rem', width: 'auto' }}
+                                            value={getMonth(currentDate)}
+                                            onChange={(e) => setCurrentDate(setMonth(currentDate, parseInt(e.target.value)))}
+                                        >
+                                            {Array.from({ length: 12 }).map((_, i) => (
+                                                <option key={i} value={i}>{format(new Date(2024, i, 1), 'MMMM')}</option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            className="input-field"
+                                            style={{ padding: '0.4rem', width: 'auto' }}
+                                            value={getYear(currentDate)}
+                                            onChange={(e) => setCurrentDate(setYear(currentDate, parseInt(e.target.value)))}
+                                        >
+                                            {Array.from({ length: 7 }).map((_, i) => {
+                                                const year = 2024 + i;
+                                                return <option key={year} value={year}>{year}</option>;
+                                            })}
+                                        </select>
+                                    </>
+                                ) : (
+                                    <h4 style={{ width: '180px', textAlign: 'right', fontWeight: '600', color: 'var(--color-text-main)' }}>
+                                        {`${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} - ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}`}
+                                    </h4>
                                 )}
+                            </div>
+                        </div>
+                    </div>
 
-                                {selectedGuest.eventDate && (
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                        <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <CalendarDays size={15} style={{ color: 'var(--color-primary)' }} />
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date</div>
-                                            <div style={{ fontWeight: '500', marginTop: '2px' }}>
-                                                {format(parseISO(selectedGuest.eventDate), 'EEEE, d MMMM yyyy')}
+                    <div className="calendar-layout-grid">
+                        <div className="calendar-main-area">
+                            {filteredGuests.length === 0 && (
+                                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                                    <SearchX size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                                    <p>No confirmed guests match your search.</p>
+                                </div>
+                            )}
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', marginBottom: '0', backgroundColor: 'var(--color-bg-light)', padding: '1rem 0', borderTopLeftRadius: 'var(--border-radius)', borderTopRightRadius: 'var(--border-radius)' }}>
+                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
+                                    <div key={d} style={{ textAlign: 'center', fontWeight: '600', color: 'var(--color-text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        {d}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="calendar" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+                                {calendarDays.map((date, i) => {
+                                    const dayGuests = confirmedGuests.filter(g => {
+                                        const eventD = g.eventDate ? parseISO(g.eventDate) : (g.timestamp ? parseISO(g.timestamp) : new Date());
+                                        return isSameDay(eventD, date);
+                                    });
+                                    const isCurrentMonth = isSameMonth(date, currentDate);
+
+                                    return (
+                                        <div key={i} className={`calendar-day card`} style={{
+                                            padding: '0.5rem',
+                                            border: 'none',
+                                            borderRadius: 0,
+                                            opacity: isCurrentMonth ? 1 : 0.4,
+                                            backgroundColor: isCurrentMonth ? 'white' : '#f9fafb'
+                                        }}>
+                                            <div className="calendar-day-header" style={{ fontWeight: isSameDay(date, new Date()) ? 'bold' : 'normal', color: isSameDay(date, new Date()) ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>
+                                                {format(date, viewMode === 'month' && date.getDate() === 1 ? 'MMM d' : 'd')}
+                                            </div>
+                                            <div style={{ minHeight: viewMode === 'month' ? '60px' : '120px', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                                {dayGuests.map(g => (
+                                                    <div
+                                                        key={g.id}
+                                                        className="calendar-event"
+                                                        style={{
+                                                            backgroundColor: g.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
+                                                                g.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
+                                                                    g.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
+                                                            color: g.team === 'Radio' ? '#1d4ed8' :
+                                                                g.team === 'Digital' ? '#c2410c' :
+                                                                    g.team === 'Magazine' ? '#15803d' : '#6d28d9',
+                                                            borderLeft: `3px solid ${g.team === 'Radio' ? '#3b82f6' : g.team === 'Digital' ? '#f97316' : g.team === 'Magazine' ? '#22c55e' : '#7c3aed'}`,
+                                                            cursor: 'pointer',
+                                                        }}
+                                                        title={`${g.slot} - Request by ${g.createdBy}`}
+                                                        onClick={() => setSelectedGuest(g)}
+                                                    >
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                            <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</strong>
+                                                            {viewMode === 'week' && getDepartmentIcon(g.team)}
+                                                        </div>
+                                                        {viewMode === 'week' && <span style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginTop: '2px' }}>{g.slot}</span>}
+
+                                                        {viewMode === 'week' && g.crossPollination && (
+                                                            <div style={{ marginTop: '0.25rem', fontSize: '0.65rem', backgroundColor: 'rgba(255,255,255,0.7)', padding: '2px 4px', borderRadius: '2px' }}>
+                                                                💡 {g.notes}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })}
+                            </div>
+                        </div>
 
-                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                    <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <User size={15} style={{ color: 'var(--color-primary)' }} />
-                                    </div>
+                        <div className="calendar-side-panel">
+                            <div className="side-panel-section">
+                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary-dark)', fontSize: '0.95rem' }}>
+                                    <span style={{ fontSize: '1.2rem' }}>🎯</span> {isSameDay(currentDate, new Date()) ? "In Today" : `Who's in on ${format(new Date(), 'do MMM')}`}
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {guestsToday.length === 0 ? (
+                                        <div style={{ padding: '1rem', background: '#f3f4f6', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+                                            No guests confirmed for today.
+                                        </div>
+                                    ) : (
+                                        guestsToday.map(g => (
+                                            <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                                                    <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
+                                                    {getDepartmentIcon(g.team)}
+                                                </div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.slot}</div>
+                                                <div style={{ marginTop: '0.5rem' }}>{getDepartmentBadge(g.team)}</div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="side-panel-section" style={{ marginTop: '2rem' }}>
+                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary-dark)', fontSize: '0.95rem' }}>
+                                    <span style={{ fontSize: '1.2rem' }}>📅</span> {isSameDay(currentDate, new Date()) ? "In Tomorrow" : `Who's in tomorrow`}
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {guestsTomorrow.length === 0 ? (
+                                        <div style={{ padding: '1rem', background: '#f3f4f6', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+                                            No guests confirmed for tomorrow.
+                                        </div>
+                                    ) : (
+                                        guestsTomorrow.map(g => (
+                                            <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                                                    <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
+                                                    {getDepartmentIcon(g.team)}
+                                                </div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.slot}</div>
+                                                <div style={{ marginTop: '0.5rem' }}>{getDepartmentBadge(g.team)}</div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <>
+                    {/* Request Feed Section */}
+                    <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600' }}>Active Pending Requests ({pendingGuests.length})</h3>
+                    </div>
+
+                    {pendingGuests.length === 0 && (
+                        <div className="card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                            <Clock size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                            <p>No pending guest requests right now. You're all caught up!</p>
+                        </div>
+                    )}
+
+                    <div className="dashboard-grid">
+                        {pendingGuests.map(guest => (
+                            <div key={guest.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '4px solid var(--color-status-pending)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Submitted By</div>
-                                        <div style={{ fontWeight: '500', marginTop: '2px' }}>{selectedGuest.createdBy}</div>
-                                        {selectedGuest.timestamp && (
-                                            <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                                                {format(parseISO(selectedGuest.timestamp), 'd MMM yyyy, HH:mm')}
+                                        <h4 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--color-text-main)' }}>{guest.name}</h4>
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Chased by <strong>{guest.createdBy}</strong></p>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                                        {getDepartmentBadge(guest.team)}
+                                        {guest.isTBC ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#854d0e', backgroundColor: '#fef9c3', padding: '0.25rem 0.6rem', borderRadius: '99px', fontWeight: '600' }}>
+                                                <Clock size={13} />
+                                                Date TBC
+                                            </div>
+                                        ) : guest.eventDate && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg-light)', padding: '0.25rem 0.6rem', borderRadius: '99px' }}>
+                                                <CalendarDays size={13} />
+                                                {format(parseISO(guest.eventDate), 'EEE d MMM yyyy')}
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                {selectedGuest.crossPollination && (
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                        <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: '#fef9c3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <Sparkles size={15} style={{ color: '#a16207' }} />
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '0.75rem', color: '#a16207', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cross-Pollination Available</div>
-                                            <div style={{ fontWeight: '500', marginTop: '2px', fontSize: '0.9rem' }}>
-                                                {selectedGuest.notes || 'Additional availability confirmed — contact booker for details.'}
-                                            </div>
-                                        </div>
+                                <div style={{ backgroundColor: 'var(--color-bg-light)', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem' }}>
+                                    <strong>Slot requested:</strong><br />
+                                    {guest.slot}
+                                </div>
+
+                                {guest.room && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                                        <span style={{ fontSize: '1rem' }}>🚪</span>
+                                        <strong>Room:</strong> {guest.room}
                                     </div>
                                 )}
 
-                                {selectedGuest.crossPollination === false && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: '8px', background: 'var(--color-bg-light)', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                                        <X size={14} /> No additional availability for other departments.
-                                    </div>
-                                )}
+                                <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem', paddingTop: '1rem' }}>
+                                    <button
+                                        className="btn btn-outline"
+                                        style={{ padding: '0.5rem 0.75rem' }}
+                                        onClick={() => openEditModal(guest)}
+                                        title="Edit request"
+                                    >
+                                        <Pencil size={15} />
+                                    </button>
+                                    <button
+                                        className="btn btn-success"
+                                        style={{ flex: 1, padding: '0.5rem' }}
+                                        onClick={() => handleConfirmClick(guest.id)}
+                                    >
+                                        <Check size={16} /> Confirm Booking
+                                    </button>
+                                </div>
                             </div>
+                        ))}
+                    </div>
 
-                            {/* Status chip */}
-                            <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span className="badge badge-confirmed">✓ Confirmed</span>
-                                <button
-                                    className="btn btn-outline"
-                                    style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                                    onClick={() => { openEditModal(selectedGuest); setSelectedGuest(null); }}
-                                >
-                                    <Pencil size={14} /> Edit
-                                </button>
+                    {/* Confirmed list sneak peek */}
+                    {searchQuery && (
+                        <div style={{ marginTop: '3rem' }}>
+                            <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>Search Results in Master Calendar ({confirmedGuests.length})</h3>
+                            <div className="dashboard-grid" style={{ opacity: 0.8 }}>
+                                {confirmedGuests.map(g => (
+                                    <div key={g.id} className="card" style={{ borderTop: `4px solid ${g.team === 'Radio' ? 'var(--color-dept-radio)' : g.team === 'Digital' ? 'var(--color-dept-digital)' : 'var(--color-dept-magazine)'}` }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <strong>{g.name}</strong>
+                                            {getDepartmentBadge(g.team)}
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                                            Confirmed: {g.slot}
+                                        </div>
+                                        {g.crossPollination && (
+                                            <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', backgroundColor: 'var(--color-bg-light)', padding: '0.5rem', borderRadius: '4px' }}>
+                                                <strong>Avail:</strong> {g.notes}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </div>
+                    )}
+                </>
+            )}
+
+            {/* Common Modals */}
+            {selectedGuest && (
+                <div className="modal-overlay" onClick={() => setSelectedGuest(null)}>
+                    <div
+                        className="modal-content animate-fade-in"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            borderTop: `5px solid ${selectedGuest.team === 'Radio' ? '#3b82f6' :
+                                selectedGuest.team === 'Digital' ? '#f97316' :
+                                    selectedGuest.team === 'Magazine' ? '#22c55e' : '#7c3aed'
+                                }`,
+                            maxWidth: '520px',
+                        }}
+                    >
+                        <div className="modal-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{
+                                    width: '44px', height: '44px', borderRadius: '50%',
+                                    background: selectedGuest.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
+                                        selectedGuest.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
+                                            selectedGuest.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: selectedGuest.team === 'Radio' ? '#1d4ed8' :
+                                        selectedGuest.team === 'Digital' ? '#c2410c' :
+                                            selectedGuest.team === 'Magazine' ? '#15803d' : '#6d28d9',
+                                }}>
+                                    {getDepartmentIcon(selectedGuest.team)}
+                                </div>
+                                <div>
+                                    <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.1rem' }}>{selectedGuest.name}</h3>
+                                    {getDepartmentBadge(selectedGuest.team)}
+                                </div>
+                            </div>
+                            <button onClick={() => setSelectedGuest(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
+                                <X size={22} />
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginTop: '1.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <MapPin size={15} style={{ color: 'var(--color-primary)' }} />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Slot</div>
+                                    <div style={{ fontWeight: '500', marginTop: '2px' }}>{selectedGuest.slot}</div>
+                                </div>
+                            </div>
+
+                            {selectedGuest.room && (
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🚪</div>
+                                    <div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Room Required</div>
+                                        <div style={{ fontWeight: '500', marginTop: '2px' }}>{selectedGuest.room}</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedGuest.eventDate && (
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <CalendarDays size={15} style={{ color: 'var(--color-primary)' }} />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date</div>
+                                        <div style={{ fontWeight: '500', marginTop: '2px' }}>
+                                            {format(parseISO(selectedGuest.eventDate), 'EEEE, d MMMM yyyy')}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <User size={15} style={{ color: 'var(--color-primary)' }} />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Submitted By</div>
+                                    <div style={{ fontWeight: '500', marginTop: '2px' }}>{selectedGuest.createdBy}</div>
+                                    {selectedGuest.timestamp && (
+                                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                                            {format(parseISO(selectedGuest.timestamp), 'd MMM yyyy, HH:mm')}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {selectedGuest.crossPollination && (
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: '#fef9c3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Sparkles size={15} style={{ color: '#a16207' }} />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.75rem', color: '#a16207', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cross-Pollination Available</div>
+                                        <div style={{ fontWeight: '500', marginTop: '2px', fontSize: '0.9rem' }}>
+                                            {selectedGuest.notes || 'Additional availability confirmed — contact booker for details.'}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span className="badge badge-confirmed">✓ Confirmed</span>
+                            <button
+                                className="btn btn-outline"
+                                style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                                onClick={() => { openEditModal(selectedGuest); setSelectedGuest(null); }}
+                            >
+                                <Pencil size={14} /> Edit
+                            </button>
+                        </div>
                     </div>
-                )}
-            </div>
-        );
-    }
-
-    return (
-        <div className="animate-fade-in">
-            {/* Request Feed */}
-            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600' }}>Active Pending Requests ({pendingGuests.length})</h3>
-            </div>
-
-            {pendingGuests.length === 0 && (
-                <div className="card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                    <Clock size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                    <p>No pending guest requests right now. You're all caught up!</p>
                 </div>
             )}
 
-            <div className="dashboard-grid">
-                {pendingGuests.map(guest => (
-                    <div key={guest.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '4px solid var(--color-status-pending)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <h4 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--color-text-main)' }}>{guest.name}</h4>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Chased by <strong>{guest.createdBy}</strong></p>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
-                                {getDepartmentBadge(guest.team)}
-                                {guest.isTBC ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#854d0e', backgroundColor: '#fef9c3', padding: '0.25rem 0.6rem', borderRadius: '99px', fontWeight: '600' }}>
-                                        <Clock size={13} />
-                                        Date TBC
-                                    </div>
-                                ) : guest.eventDate && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-bg-light)', padding: '0.25rem 0.6rem', borderRadius: '99px' }}>
-                                        <CalendarDays size={13} />
-                                        {format(parseISO(guest.eventDate), 'EEE d MMM yyyy')}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div style={{ backgroundColor: 'var(--color-bg-light)', padding: '0.75rem', borderRadius: '8px', fontSize: '0.9rem' }}>
-                            <strong>Slot requested:</strong><br />
-                            {guest.slot}
-                        </div>
-
-                        {guest.room && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                                <span style={{ fontSize: '1rem' }}>🚪</span>
-                                <strong>Room:</strong> {guest.room}
-                            </div>
-                        )}
-
-                        <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem', paddingTop: '1rem' }}>
-                            <button
-                                className="btn btn-outline"
-                                style={{ padding: '0.5rem 0.75rem' }}
-                                onClick={() => openEditModal(guest)}
-                                title="Edit request"
-                            >
-                                <Pencil size={15} />
-                            </button>
-                            <button
-                                className="btn btn-success"
-                                style={{ flex: 1, padding: '0.5rem' }}
-                                onClick={() => handleConfirmClick(guest.id)}
-                            >
-                                <Check size={16} /> Confirm Booking
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Confirmation Modal logic */}
             {crossPolModal.isOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content animate-fade-in" style={{ borderTop: '4px solid var(--color-status-confirmed)' }}>
@@ -531,7 +544,7 @@ export default function Dashboard({ activeTab }) {
                         <p style={{ marginBottom: '1.5rem', fontSize: '0.95rem', color: 'var(--color-text-muted)' }}>
                             {crossPolModal.isCurrentlyTBC ?
                                 <span>This request was <strong>TBC</strong>. Please select the final confirmed date:</span> :
-                                <span>Does this guest have additional availability for other departments (Cross-Pollination)?</span>
+                                <span>Does this guest have additional availability for other departments (Cross-Pollination)??</span>
                             }
                         </p>
 
@@ -595,7 +608,6 @@ export default function Dashboard({ activeTab }) {
                 </div>
             )}
 
-            {/* Edit Guest Modal */}
             {editModal.isOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content animate-fade-in" style={{ borderTop: '4px solid var(--color-primary)', maxWidth: '560px' }}>
@@ -720,31 +732,6 @@ export default function Dashboard({ activeTab }) {
                                 <button type="submit" className="btn btn-primary">Save Changes</button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Confirmed list sneak peek */}
-            {searchQuery && (
-                <div style={{ marginTop: '3rem' }}>
-                    <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>Search Results in Master Calendar ({confirmedGuests.length})</h3>
-                    <div className="dashboard-grid" style={{ opacity: 0.8 }}>
-                        {confirmedGuests.map(g => (
-                            <div key={g.id} className="card" style={{ borderTop: `4px solid ${g.team === 'Radio' ? 'var(--color-dept-radio)' : g.team === 'Digital' ? 'var(--color-dept-digital)' : 'var(--color-dept-magazine)'}` }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <strong>{g.name}</strong>
-                                    {getDepartmentBadge(g.team)}
-                                </div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-                                    Confirmed: {g.slot}
-                                </div>
-                                {g.crossPollination && (
-                                    <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', backgroundColor: 'var(--color-bg-light)', padding: '0.5rem', borderRadius: '4px' }}>
-                                        <strong>Avail:</strong> {g.notes}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
                     </div>
                 </div>
             )}
