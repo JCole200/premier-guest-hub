@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, isSameMonth, addWeeks, subWeeks, addMonths, subMonths, parseISO, setMonth, setYear, getMonth, getYear } from 'date-fns';
-import { Check, X, Clock, Video, Radio as RadioIcon, BookOpen, SearchX, ChevronLeft, ChevronRight, Pencil, CalendarDays } from 'lucide-react';
+import { Check, X, Clock, Video, Radio as RadioIcon, BookOpen, SearchX, ChevronLeft, ChevronRight, Pencil, CalendarDays, User, MapPin, Sparkles } from 'lucide-react';
 import { useAppContext } from '../AppContext';
 
 export default function Dashboard({ activeTab }) {
@@ -11,6 +11,7 @@ export default function Dashboard({ activeTab }) {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [editModal, setEditModal] = useState({ isOpen: false, guest: null });
     const [editData, setEditData] = useState({});
+    const [selectedGuest, setSelectedGuest] = useState(null);
 
     // Filtering guests safely matching multiple strings
     const filteredGuests = guests.filter(g => {
@@ -208,8 +209,10 @@ export default function Dashboard({ activeTab }) {
                                                 color: g.team === 'Radio' ? '#1d4ed8' :
                                                     g.team === 'Digital' ? '#c2410c' : '#15803d',
                                                 borderLeft: `3px solid ${g.team === 'Radio' ? '#3b82f6' : g.team === 'Digital' ? '#f97316' : '#22c55e'}`,
+                                                cursor: 'pointer',
                                             }}
                                             title={`${g.slot} - Request by ${g.createdBy}`}
+                                            onClick={() => setSelectedGuest(g)}
                                         >
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                 <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</strong>
@@ -229,6 +232,120 @@ export default function Dashboard({ activeTab }) {
                         );
                     })}
                 </div>
+
+                {/* Guest Detail Modal */}
+                {selectedGuest && (
+                    <div className="modal-overlay" onClick={() => setSelectedGuest(null)}>
+                        <div
+                            className="modal-content animate-fade-in"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                borderTop: `5px solid ${selectedGuest.team === 'Radio' ? '#3b82f6' :
+                                    selectedGuest.team === 'Digital' ? '#f97316' : '#22c55e'
+                                    }`,
+                                maxWidth: '520px',
+                            }}
+                        >
+                            {/* Header */}
+                            <div className="modal-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div style={{
+                                        width: '44px', height: '44px', borderRadius: '50%',
+                                        background: selectedGuest.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
+                                            selectedGuest.team === 'Digital' ? 'var(--color-dept-digital-bg)' : 'var(--color-dept-magazine-bg)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        color: selectedGuest.team === 'Radio' ? '#1d4ed8' :
+                                            selectedGuest.team === 'Digital' ? '#c2410c' : '#15803d',
+                                    }}>
+                                        {getDepartmentIcon(selectedGuest.team)}
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.1rem' }}>{selectedGuest.name}</h3>
+                                        {getDepartmentBadge(selectedGuest.team)}
+                                    </div>
+                                </div>
+                                <button onClick={() => setSelectedGuest(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
+                                    <X size={22} />
+                                </button>
+                            </div>
+
+                            {/* Detail Rows */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginTop: '1.5rem' }}>
+
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <MapPin size={15} style={{ color: 'var(--color-primary)' }} />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Slot</div>
+                                        <div style={{ fontWeight: '500', marginTop: '2px' }}>{selectedGuest.slot}</div>
+                                    </div>
+                                </div>
+
+                                {selectedGuest.eventDate && (
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                        <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <CalendarDays size={15} style={{ color: 'var(--color-primary)' }} />
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date</div>
+                                            <div style={{ fontWeight: '500', marginTop: '2px' }}>
+                                                {format(parseISO(selectedGuest.eventDate), 'EEEE, d MMMM yyyy')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <User size={15} style={{ color: 'var(--color-primary)' }} />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Submitted By</div>
+                                        <div style={{ fontWeight: '500', marginTop: '2px' }}>{selectedGuest.createdBy}</div>
+                                        {selectedGuest.timestamp && (
+                                            <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                                                {format(parseISO(selectedGuest.timestamp), 'd MMM yyyy, HH:mm')}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {selectedGuest.crossPollination && (
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                        <div style={{ minWidth: '32px', height: '32px', borderRadius: '8px', background: '#fef9c3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Sparkles size={15} style={{ color: '#a16207' }} />
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: '#a16207', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cross-Pollination Available</div>
+                                            <div style={{ fontWeight: '500', marginTop: '2px', fontSize: '0.9rem' }}>
+                                                {selectedGuest.notes || 'Additional availability confirmed — contact booker for details.'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedGuest.crossPollination === false && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: '8px', background: 'var(--color-bg-light)', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+                                        <X size={14} /> No additional availability for other departments.
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Status chip */}
+                            <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span className="badge badge-confirmed">✓ Confirmed</span>
+                                <button
+                                    className="btn btn-outline"
+                                    style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                                    onClick={() => { openEditModal(selectedGuest); setSelectedGuest(null); }}
+                                >
+                                    <Pencil size={14} /> Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
