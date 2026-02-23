@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, isSameMonth, addWeeks, subWeeks, addMonths, subMonths, parseISO, setMonth, setYear, getMonth, getYear } from 'date-fns';
-import { Check, X, Clock, Video, Radio as RadioIcon, BookOpen, SearchX, ChevronLeft, ChevronRight, Pencil, CalendarDays, User, MapPin, Sparkles } from 'lucide-react';
+import { Check, X, Clock, Video, Radio as RadioIcon, BookOpen, SearchX, ChevronLeft, ChevronRight, Pencil, CalendarDays, User, MapPin, Sparkles, Mic } from 'lucide-react';
 import { useAppContext } from '../AppContext';
 
 export default function Dashboard({ activeTab }) {
@@ -27,6 +27,7 @@ export default function Dashboard({ activeTab }) {
             case 'Radio': return <span className="badge badge-radio">Radio</span>;
             case 'Digital': return <span className="badge badge-digital">Digital</span>;
             case 'Magazine': return <span className="badge badge-magazine">Magazine</span>;
+            case 'Unbelievable': return <span className="badge badge-unbelievable">Unbelievable</span>;
             default: return null;
         }
     };
@@ -36,6 +37,7 @@ export default function Dashboard({ activeTab }) {
             case 'Radio': return <RadioIcon size={16} />;
             case 'Digital': return <Video size={16} />;
             case 'Magazine': return <BookOpen size={16} />;
+            case 'Unbelievable': return <Mic size={16} />;
             default: return null;
         }
     };
@@ -205,10 +207,11 @@ export default function Dashboard({ activeTab }) {
                                             style={{
                                                 backgroundColor: g.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
                                                     g.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
-                                                        'var(--color-dept-magazine-bg)',
+                                                        g.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
                                                 color: g.team === 'Radio' ? '#1d4ed8' :
-                                                    g.team === 'Digital' ? '#c2410c' : '#15803d',
-                                                borderLeft: `3px solid ${g.team === 'Radio' ? '#3b82f6' : g.team === 'Digital' ? '#f97316' : '#22c55e'}`,
+                                                    g.team === 'Digital' ? '#c2410c' :
+                                                        g.team === 'Magazine' ? '#15803d' : '#6d28d9',
+                                                borderLeft: `3px solid ${g.team === 'Radio' ? '#3b82f6' : g.team === 'Digital' ? '#f97316' : g.team === 'Magazine' ? '#22c55e' : '#7c3aed'}`,
                                                 cursor: 'pointer',
                                             }}
                                             title={`${g.slot} - Request by ${g.createdBy}`}
@@ -241,7 +244,8 @@ export default function Dashboard({ activeTab }) {
                             onClick={(e) => e.stopPropagation()}
                             style={{
                                 borderTop: `5px solid ${selectedGuest.team === 'Radio' ? '#3b82f6' :
-                                    selectedGuest.team === 'Digital' ? '#f97316' : '#22c55e'
+                                    selectedGuest.team === 'Digital' ? '#f97316' :
+                                        selectedGuest.team === 'Magazine' ? '#22c55e' : '#7c3aed'
                                     }`,
                                 maxWidth: '520px',
                             }}
@@ -252,10 +256,12 @@ export default function Dashboard({ activeTab }) {
                                     <div style={{
                                         width: '44px', height: '44px', borderRadius: '50%',
                                         background: selectedGuest.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
-                                            selectedGuest.team === 'Digital' ? 'var(--color-dept-digital-bg)' : 'var(--color-dept-magazine-bg)',
+                                            selectedGuest.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
+                                                selectedGuest.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         color: selectedGuest.team === 'Radio' ? '#1d4ed8' :
-                                            selectedGuest.team === 'Digital' ? '#c2410c' : '#15803d',
+                                            selectedGuest.team === 'Digital' ? '#c2410c' :
+                                                selectedGuest.team === 'Magazine' ? '#15803d' : '#6d28d9',
                                     }}>
                                         {getDepartmentIcon(selectedGuest.team)}
                                     </div>
@@ -519,6 +525,7 @@ export default function Dashboard({ activeTab }) {
                                         <option value="Radio">Radio</option>
                                         <option value="Digital">Digital</option>
                                         <option value="Magazine">Magazine</option>
+                                        <option value="Unbelievable">Unbelievable</option>
                                     </select>
                                 </div>
 
