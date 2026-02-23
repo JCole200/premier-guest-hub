@@ -15,7 +15,34 @@ export const AppProvider = ({ children }) => {
   });
 
   const [currentUser, setCurrentUser] = useState('Sarah Connor');
+  const [isAdmin, setIsAdmin] = useState(() => {
+    return localStorage.getItem('isAdmin') === 'true';
+  });
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
   const [searchQuery, setSearchQuery] = useState('');
+
+  const login = (password) => {
+    // Basic password for demo - in reality this would be more secure
+    if (password === 'admin123') {
+      setIsAdmin(true);
+      setIsLoggedIn(true);
+      setCurrentUser('Admin User');
+      localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('isLoggedIn', 'true');
+      return true;
+    }
+    return false;
+  };
+
+  const logout = () => {
+    setIsAdmin(false);
+    setIsLoggedIn(false);
+    setCurrentUser('Sarah Connor');
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('isLoggedIn');
+  };
 
   // Simulate real-time sync via localStorage polling (syncs across tabs)
   useEffect(() => {
@@ -43,8 +70,16 @@ export const AppProvider = ({ children }) => {
     setGuests(prev => prev.map(g => g.id === updatedGuest.id ? { ...g, ...updatedGuest } : g));
   };
 
+  const deleteGuest = (id) => {
+    setGuests(prev => prev.filter(g => g.id !== id));
+  };
+
   return (
-    <AppContext.Provider value={{ guests, addGuest, updateGuestStatus, updateGuest, currentUser, setCurrentUser, searchQuery, setSearchQuery }}>
+    <AppContext.Provider value={{
+      guests, addGuest, updateGuestStatus, updateGuest, deleteGuest,
+      currentUser, setCurrentUser, isAdmin, isLoggedIn, login, logout,
+      searchQuery, setSearchQuery
+    }}>
       {children}
     </AppContext.Provider>
   );
