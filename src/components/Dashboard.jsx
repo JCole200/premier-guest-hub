@@ -79,6 +79,7 @@ export default function Dashboard({ activeTab }) {
     const handleConfirmFinal = (e) => {
         e.preventDefault();
         const guest = guests.find(g => g.id === crossPolModal.guestId);
+        const finalData = { ...crossPolData };
 
         if (crossPolModal.isCurrentlyTBC) {
             let d = new Date();
