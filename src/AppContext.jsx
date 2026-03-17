@@ -1,18 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from './supabaseClient';
 
 const AppContext = createContext();
 
-const initialGuests = [
-  { id: 1, name: 'John Peterson', team: 'Premier Christian Radio', slot: '15 min slot on Inspirational Breakfast', status: 'Pending', crossPollination: null, notes: '', createdBy: 'Sarah Connor', timestamp: new Date().toISOString(), eventDate: new Date().toISOString() },
-  { id: 2, name: 'Jane Smith', team: 'Digital', slot: 'Social Media IG Live 10min', status: 'Confirmed', crossPollination: true, notes: 'Available till 2pm for Quick Fire questions', createdBy: 'Mike Tyson', timestamp: new Date(Date.now() - 86400000).toISOString(), eventDate: new Date(Date.now() + 86400000).toISOString() },
-  { id: 3, name: 'Pastor David', team: 'Magazine', slot: 'Full Interview Feature', status: 'Confirmed', crossPollination: false, notes: '', createdBy: 'Alice Wonderland', timestamp: new Date(Date.now() - 172800000).toISOString(), eventDate: new Date(Date.now() + 172800000 * 2).toISOString() },
-];
-
 export const AppProvider = ({ children }) => {
-  const [guests, setGuests] = useState(() => {
-    const saved = localStorage.getItem('premierGuests');
-    return saved ? JSON.parse(saved) : initialGuests;
-  });
+  const [guests, setGuests] = useState([]);
 
   const [isAdmin, setIsAdmin] = useState(() => {
     return localStorage.getItem('isAdmin') === 'true';
@@ -46,42 +38,106 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem('isLoggedIn');
   };
 
-  // Simulate real-time sync via localStorage polling (syncs across tabs)
   useEffect(() => {
-    const handleStorage = () => {
-      const saved = localStorage.getItem('premierGuests');
-      if (saved) setGuests(JSON.parse(saved));
+    const fetchGuests = async () => {
+      const { data, error } = await supabase
+        .from('guests')
+        .select('*')
+        .order('timestamp', { ascending: false });
+        
+      if (error) {
+        console.error('Error fetching guests:', error);
+      } else if (data) {
+        setGuests(data);
+      }
     };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+
+    fetchGuests();
+
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'guests' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setGuests(prev => {
+              if (prev.some(g => g.id === payload.new.id)) return prev;
+              return [payload.new, ...prev].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            setGuests(prev => prev.map(g => g.id === payload.new.id ? payload.new : g));
+          } else if (payload.eventType === 'DELETE') {
+            setGuests(prev => prev.filter(g => g.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('premierGuests', JSON.stringify(guests));
-  }, [guests]);
-
-  const addGuest = (guest) => {
+  const addGuest = async (guest) => {
     const bookerName = guest.submittedBy || 'Staff Member';
     const newGuest = {
       ...guest,
-      id: Date.now(),
       timestamp: new Date().toISOString(),
       createdBy: bookerName
     };
     delete newGuest.submittedBy;
-    setGuests(prev => [newGuest, ...prev]);
+    
+    const { data, error } = await supabase.from('guests').insert([newGuest]).select();
+    if (error) {
+      console.error('Error adding guest:', error);
+    } else if (data) {
+      setGuests(prev => {
+        if (prev.some(g => g.id === data[0].id)) return prev;
+        return [data[0], ...prev];
+      });
+    }
   };
 
-  const updateGuestStatus = (id, status, extraData = {}) => {
-    setGuests(prev => prev.map(g => g.id === id ? { ...g, status, ...extraData } : g));
+  const updateGuestStatus = async (id, status, extraData = {}) => {
+    const { data, error } = await supabase
+      .from('guests')
+      .update({ status, ...extraData })
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      console.error('Error updating status:', error);
+    } else if (data) {
+      setGuests(prev => prev.map(g => g.id === id ? data[0] : g));
+    }
   };
 
-  const updateGuest = (updatedGuest) => {
-    setGuests(prev => prev.map(g => g.id === updatedGuest.id ? { ...g, ...updatedGuest } : g));
+  const updateGuest = async (updatedGuest) => {
+    const { data, error } = await supabase
+      .from('guests')
+      .update(updatedGuest)
+      .eq('id', updatedGuest.id)
+      .select();
+      
+    if (error) {
+      console.error('Error updating guest:', error);
+    } else if (data) {
+      setGuests(prev => prev.map(g => g.id === updatedGuest.id ? data[0] : g));
+    }
   };
 
-  const deleteGuest = (id) => {
-    setGuests(prev => prev.filter(g => g.id !== id));
+  const deleteGuest = async (id) => {
+    const { error } = await supabase
+      .from('guests')
+      .delete()
+      .eq('id', id);
+      
+    if (error) {
+      console.error('Error deleting guest:', error);
+    } else {
+      setGuests(prev => prev.filter(g => g.id !== id));
+    }
   };
 
   return (
