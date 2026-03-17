@@ -118,7 +118,7 @@ export default function AdminPortal({ onEditGuest }) {
                                         <td style={{ padding: '1rem 1.25rem' }}>
                                             <div style={{ fontSize: '0.85rem', fontWeight: '500' }}>{guest.slot}</div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-                                                {guest.isTBC ? 'Date TBC' : format(parseISO(guest.eventDate), 'EEE d MMM yyyy')}
+                                                {guest.isTBC ? 'Date TBC' : format(parseISO(guest.eventDate), 'EEE d MMM yyyy, HH:mm')}
                                             </div>
                                         </td>
                                         <td style={{ padding: '1rem 1.25rem' }}>

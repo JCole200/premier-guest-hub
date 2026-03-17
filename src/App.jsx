@@ -225,29 +225,81 @@ function App() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <label className="label" style={{ marginBottom: 0 }}>Event Date</label>
-                  {editData.status === 'Pending' && (
-                    <label style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
-                      <input
-                        type="checkbox"
-                        checked={!!editData.isTBC}
-                        onChange={(e) => setEditData({ ...editData, isTBC: e.target.checked })}
-                      />
-                      Date TBC
-                    </label>
-                  )}
-                </div>
-                <input
-                  type="date"
-                  className="input-field"
-                  value={editData.isTBC ? '' : (editData.eventDate ? editData.eventDate.split('T')[0] : '')}
-                  onChange={(e) => setEditData({ ...editData, eventDate: new Date(e.target.value + 'T12:00:00').toISOString(), isTBC: false })}
-                  disabled={!!editData.isTBC}
-                  required={!editData.isTBC}
-                  style={{ opacity: editData.isTBC ? 0.5 : 1 }}
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <label className="label" style={{ marginBottom: 0 }}>Event Date</label>
+                      {editData.status === 'Pending' && (
+                        <label style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
+                          <input
+                            type="checkbox"
+                            checked={!!editData.isTBC}
+                            onChange={(e) => setEditData({ ...editData, isTBC: e.target.checked })}
+                          />
+                          Date TBC
+                        </label>
+                      )}
+                    </div>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={editData.isTBC ? '' : (() => {
+                          if (!editData.eventDate) return '';
+                          try {
+                              const d = new Date(editData.eventDate);
+                              if (isNaN(d.getTime())) return '';
+                              const yyyy = d.getFullYear();
+                              const mm = String(d.getMonth() + 1).padStart(2, '0');
+                              const dd = String(d.getDate()).padStart(2, '0');
+                              return `${yyyy}-${mm}-${dd}`;
+                          } catch(e) { return ''; }
+                      })()}
+                      onChange={(e) => {
+                          let d = new Date(editData.eventDate || Date.now());
+                          if (isNaN(d.getTime())) d = new Date();
+                          const [yyyy, mm, dd] = e.target.value.split('-');
+                          if (yyyy && mm && dd) {
+                              d.setFullYear(parseInt(yyyy, 10));
+                              d.setMonth(parseInt(mm, 10) - 1);
+                              d.setDate(parseInt(dd, 10));
+                              setEditData({ ...editData, eventDate: d.toISOString(), isTBC: false });
+                          }
+                      }}
+                      disabled={!!editData.isTBC}
+                      required={!editData.isTBC}
+                      style={{ opacity: editData.isTBC ? 0.5 : 1 }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <label className="label" style={{ marginBottom: 0 }}>Event Time</label>
+                    </div>
+                    <input
+                      type="time"
+                      className="input-field"
+                      value={editData.isTBC ? '' : (() => {
+                          if (!editData.eventDate) return '12:00';
+                          try {
+                              const d = new Date(editData.eventDate);
+                              if (isNaN(d.getTime())) return '12:00';
+                              return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                          } catch(e) { return '12:00'; }
+                      })()}
+                      onChange={(e) => {
+                          let d = new Date(editData.eventDate || Date.now());
+                          if (isNaN(d.getTime())) d = new Date();
+                          const [hours, minutes] = e.target.value.split(':');
+                          if (hours && minutes) {
+                              d.setHours(parseInt(hours, 10));
+                              d.setMinutes(parseInt(minutes, 10));
+                              setEditData({ ...editData, eventDate: d.toISOString() });
+                          }
+                      }}
+                      disabled={!!editData.isTBC}
+                      required={!editData.isTBC}
+                      style={{ opacity: editData.isTBC ? 0.5 : 1 }}
+                    />
+                  </div>
               </div>
 
               <div className="form-group">
