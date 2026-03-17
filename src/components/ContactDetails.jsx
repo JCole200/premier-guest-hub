@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Download, Users, ArrowUpAZ, ArrowDownZA, Clock } from 'lucide-react';
+import { Search, Download, Users, Phone, Mail, Clock, CalendarIcon } from 'lucide-react';
 import { useAppContext } from '../AppContext';
 import { format, parseISO } from 'date-fns';
 
@@ -62,6 +62,14 @@ export default function ContactDetails() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        document.body.removeChild(link);
+    };
+
+    const getInitials = (name) => {
+        if (!name) return '?';
+        const parts = name.trim().split(' ');
+        if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+        return name.substring(0, 2).toUpperCase();
     };
 
     return (
@@ -118,28 +126,48 @@ export default function ContactDetails() {
                         ) : (
                             filteredAndSortedGuests.map(guest => (
                                 <tr key={guest.id}>
-                                    <td style={{ fontWeight: '600' }}>{guest.name}</td>
+                                    <td>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <div className="contact-avatar">
+                                                {getInitials(guest.name)}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: '600', color: 'var(--color-primary-dark)' }}>{guest.name}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{guest.team}</div>
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td>
                                         {guest.email ? (
-                                            <a href={`mailto:${guest.email}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
-                                                {guest.email}
+                                            <a href={`mailto:${guest.email}`} style={{ color: 'var(--color-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Mail size={14} style={{ opacity: 0.6 }} /> {guest.email}
                                             </a>
                                         ) : (
-                                            <span style={{ color: 'var(--color-text-muted)' }}>-</span>
-                                        )}
-                                    </td>
-                                    <td>{guest.phone || <span style={{ color: 'var(--color-text-muted)' }}>-</span>}</td>
-                                    <td>
-                                        {guest.isTBC ? (
-                                            <span style={{ color: '#f59e0b', fontWeight: '600' }}>Date TBC</span>
-                                        ) : guest.eventDate ? (
-                                            format(parseISO(guest.eventDate), 'do MMM yyyy, HH:mm')
-                                        ) : (
-                                            <span style={{ color: 'var(--color-text-muted)' }}>Unknown</span>
+                                            <span style={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Mail size={14} style={{ opacity: 0.3 }} /> -
+                                            </span>
                                         )}
                                     </td>
                                     <td>
-                                        <span className={`status-badge status-${guest.status.toLowerCase()}`}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <Phone size={14} style={{ opacity: guest.phone ? 0.6 : 0.3, color: guest.phone ? 'var(--color-text-main)' : 'var(--color-text-muted)' }} />
+                                            {guest.phone || <span style={{ color: 'var(--color-text-muted)' }}>-</span>}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <CalendarIcon size={14} style={{ opacity: 0.6, color: 'var(--color-text-main)' }} />
+                                            {guest.isTBC ? (
+                                                <span style={{ color: '#f59e0b', fontWeight: '600' }}>Date TBC</span>
+                                            ) : guest.eventDate ? (
+                                                format(parseISO(guest.eventDate), 'do MMM yyyy, HH:mm')
+                                            ) : (
+                                                <span style={{ color: 'var(--color-text-muted)' }}>Unknown</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span className={`badge badge-${guest.status.toLowerCase()}`}>
                                             {guest.status}
                                         </span>
                                     </td>
