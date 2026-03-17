@@ -13,6 +13,11 @@ export default function Dashboard({ activeTab }) {
     const [editData, setEditData] = useState({});
     const [selectedGuest, setSelectedGuest] = useState(null);
 
+    // Sidebar filters
+    const [sideSearch, setSideSearch] = useState('');
+    const [sideTeamFilter, setSideTeamFilter] = useState('All');
+    const [sideRoomFilter, setSideRoomFilter] = useState('All');
+
     // Filtering guests safely matching multiple strings
     const filteredGuests = guests.filter(g => {
         if (!searchQuery) return true;
@@ -53,8 +58,17 @@ export default function Dashboard({ activeTab }) {
 
     const today = new Date();
     const tomorrow = addDays(today, 1);
-    const guestsToday = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), today));
-    const guestsTomorrow = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), tomorrow));
+    
+    // Filter function for side panel
+    const filterForSidePanel = (g) => {
+        const matchesSearch = !sideSearch || g.name.toLowerCase().includes(sideSearch.toLowerCase());
+        const matchesTeam = sideTeamFilter === 'All' || g.team === sideTeamFilter;
+        const matchesRoom = sideRoomFilter === 'All' || g.room === sideRoomFilter;
+        return matchesSearch && matchesTeam && matchesRoom;
+    };
+
+    const guestsToday = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), today)).filter(filterForSidePanel);
+    const guestsTomorrow = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), tomorrow)).filter(filterForSidePanel);
 
     const handleConfirmClick = (id) => {
         const guest = guests.find(g => g.id === id);
@@ -286,6 +300,60 @@ export default function Dashboard({ activeTab }) {
                         </div>
 
                         <div className="calendar-side-panel">
+                            {/* --- NEW SIDE PANEL FILTERS --- */}
+                            <div className="side-panel-section" style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'var(--color-bg-light)', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                                <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.75rem' }}>
+                                    Filter Daily View
+                                </h4>
+                                
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <div className="search-container" style={{ width: '100%' }}>
+                                        <SearchX className="search-icon" size={16} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search name..."
+                                            className="input-field"
+                                            style={{ padding: '0.4rem 0.4rem 0.4rem 2rem', fontSize: '0.85rem' }}
+                                            value={sideSearch}
+                                            onChange={(e) => setSideSearch(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <select
+                                        className="input-field"
+                                        style={{ padding: '0.4rem', fontSize: '0.85rem' }}
+                                        value={sideTeamFilter}
+                                        onChange={(e) => setSideTeamFilter(e.target.value)}
+                                    >
+                                        <option value="All">All Stations / Teams</option>
+                                        <option value="Premier Christian Radio">Premier Christian Radio</option>
+                                        <option value="Premier Praise">Premier Praise</option>
+                                        <option value="Premier Gospel">Premier Gospel</option>
+                                        <option value="Digital">Digital</option>
+                                        <option value="Magazine">Magazine</option>
+                                        <option value="Unbelievable">Unbelievable</option>
+                                        <option value="Internal / Admin">Internal / Admin</option>
+                                    </select>
+
+                                    <select
+                                        className="input-field"
+                                        style={{ padding: '0.4rem', fontSize: '0.85rem' }}
+                                        value={sideRoomFilter}
+                                        onChange={(e) => setSideRoomFilter(e.target.value)}
+                                    >
+                                        <option value="All">All Rooms</option>
+                                        <option value="Radio Studio 1">Radio Studio 1</option>
+                                        <option value="Radio Studio 2">Radio Studio 2</option>
+                                        <option value="Radio Studio 3">Radio Studio 3</option>
+                                        <option value="Podcast Studio">Podcast Studio</option>
+                                        <option value="PCR Radio Room">PCR Radio Room</option>
+                                        <option value="Praise Radio Room">Praise Radio Room</option>
+                                        <option value="Gospel Room">Gospel Room</option>
+                                        <option value="Zoom">Zoom</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div className="side-panel-section">
                                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary-dark)', fontSize: '0.95rem' }}>
                                     <span style={{ fontSize: '1.2rem' }}>🎯</span> {isSameDay(currentDate, new Date()) ? "In Today" : `Who's in on ${format(new Date(), 'do MMM')}`}
