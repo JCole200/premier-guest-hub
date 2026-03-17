@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Trash2, Pencil, Search, Filter, Download, MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
+import { Trash2, Pencil, Search, Download, CheckCircle, Clock, PlusCircle, Calendar as CalendarIcon, MapPin, AlignLeft, X } from 'lucide-react';
 import { useAppContext } from '../AppContext';
 
 export default function AdminPortal({ onEditGuest }) {
-    const { guests, deleteGuest, updateGuestStatus } = useAppContext();
+    const { guests, addGuest, deleteGuest, updateGuestStatus } = useAppContext();
     const [filter, setFilter] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
+
+    const [isCustomEventOpen, setIsCustomEventOpen] = useState(false);
+    const [customEventData, setCustomEventData] = useState({
+        name: '',
+        team: 'Internal / Admin',
+        room: '',
+        slot: 'Custom Event',
+        notes: '',
+        eventDate: new Date().toISOString()
+    });
 
     const filteredGuests = guests.filter(g => {
         const matchesSearch = g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -16,9 +26,29 @@ export default function AdminPortal({ onEditGuest }) {
     });
 
     const handleDelete = (id, name) => {
-        if (window.confirm(`Are you sure you want to delete the booking for ${name}?`)) {
+        if (window.confirm(`Are you sure you want to delete ${name}?`)) {
             deleteGuest(id);
         }
+    };
+
+    const handleCustomSubmit = (e) => {
+        e.preventDefault();
+        const newGuest = {
+            ...customEventData,
+            status: 'Confirmed',
+            isTBC: false,
+            crossPollination: null
+        };
+        addGuest(newGuest);
+        setIsCustomEventOpen(false);
+        setCustomEventData({
+            name: '',
+            team: 'Internal / Admin',
+            room: '',
+            slot: 'Custom Event',
+            notes: '',
+            eventDate: new Date().toISOString()
+        });
     };
 
     const getTeamColor = (team) => {
@@ -43,6 +73,9 @@ export default function AdminPortal({ onEditGuest }) {
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button onClick={() => setIsCustomEventOpen(true)} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <PlusCircle size={16} /> New Custom Event
+                    </button>
                     <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Download size={16} /> Export CSV
                     </button>
@@ -158,6 +191,135 @@ export default function AdminPortal({ onEditGuest }) {
                     </table>
                 </div>
             </div>
+
+            {isCustomEventOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content animate-fade-in" style={{ borderTop: '4px solid #6b7280', maxWidth: '560px' }}>
+                        <div className="modal-header">
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <CalendarIcon size={18} /> Add Custom Calendar Event
+                            </h3>
+                            <button onClick={() => setIsCustomEventOpen(false)} className="btn-outline" style={{ border: 'none', padding: '0.25rem' }}><X size={20} /></button>
+                        </div>
+                        <p style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                            Instantly add internal meetings, holidays, or placeholders to the master calendar.
+                        </p>
+
+                        <form onSubmit={handleCustomSubmit}>
+                            <div className="form-group">
+                                <label className="label">Event Name</label>
+                                <input
+                                    type="text"
+                                    className="input-field"
+                                    placeholder="e.g. Staff Meeting, Bank Holiday..."
+                                    value={customEventData.name}
+                                    onChange={(e) => setCustomEventData({ ...customEventData, name: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="form-group">
+                                    <label className="label">Event Date</label>
+                                    <input
+                                        type="date"
+                                        className="input-field"
+                                        value={(() => {
+                                            if (!customEventData.eventDate) return '';
+                                            try {
+                                                const d = new Date(customEventData.eventDate);
+                                                if (isNaN(d.getTime())) return '';
+                                                const yyyy = d.getFullYear();
+                                                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                                                const dd = String(d.getDate()).padStart(2, '0');
+                                                return `${yyyy}-${mm}-${dd}`;
+                                            } catch(e) { return ''; }
+                                        })()}
+                                        onChange={(e) => {
+                                            let d = new Date(customEventData.eventDate || Date.now());
+                                            if (isNaN(d.getTime())) d = new Date();
+                                            const [yyyy, mm, dd] = e.target.value.split('-');
+                                            if (yyyy && mm && dd) {
+                                                d.setFullYear(parseInt(yyyy, 10));
+                                                d.setMonth(parseInt(mm, 10) - 1);
+                                                d.setDate(parseInt(dd, 10));
+                                                setCustomEventData({ ...customEventData, eventDate: d.toISOString() });
+                                            }
+                                        }}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="label">Event Time</label>
+                                    <input
+                                        type="time"
+                                        className="input-field"
+                                        value={(() => {
+                                            if (!customEventData.eventDate) return '12:00';
+                                            try {
+                                                const d = new Date(customEventData.eventDate);
+                                                if (isNaN(d.getTime())) return '12:00';
+                                                return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                                            } catch(e) { return '12:00'; }
+                                        })()}
+                                        onChange={(e) => {
+                                            let d = new Date(customEventData.eventDate || Date.now());
+                                            if (isNaN(d.getTime())) d = new Date();
+                                            const [hours, minutes] = e.target.value.split(':');
+                                            if (hours && minutes) {
+                                                d.setHours(parseInt(hours, 10));
+                                                d.setMinutes(parseInt(minutes, 10));
+                                                setCustomEventData({ ...customEventData, eventDate: d.toISOString() });
+                                            }
+                                        }}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div className="form-group">
+                                    <label className="label">Brief Description (Slot details)</label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        placeholder="e.g. All-hands wrap up"
+                                        value={customEventData.slot}
+                                        onChange={(e) => setCustomEventData({ ...customEventData, slot: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="label">Location / Room (Optional)</label>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        placeholder="e.g. Boardroom"
+                                        value={customEventData.room}
+                                        onChange={(e) => setCustomEventData({ ...customEventData, room: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="label">Additional Notes</label>
+                                <textarea
+                                    className="input-field"
+                                    rows="2"
+                                    placeholder="Any other details..."
+                                    value={customEventData.notes}
+                                    onChange={(e) => setCustomEventData({ ...customEventData, notes: e.target.value })}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+                                <button type="button" onClick={() => setIsCustomEventOpen(false)} className="btn btn-outline">Cancel</button>
+                                <button type="submit" className="btn btn-primary">Add Event</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
