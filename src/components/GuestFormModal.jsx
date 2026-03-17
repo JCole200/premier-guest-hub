@@ -7,7 +7,7 @@ export default function GuestFormModal({ onClose }) {
     const [formData, setFormData] = useState({
         submittedBy: '',
         name: '',
-        team: 'Radio',
+        team: 'Premier Christian Radio',
         room: 'Radio Studio 1',
         slot: '',
         status: 'Pending',
@@ -147,7 +147,9 @@ export default function GuestFormModal({ onClose }) {
                             value={formData.team}
                             onChange={(e) => setFormData({ ...formData, team: e.target.value })}
                         >
-                            <option value="Radio">Radio</option>
+                            <option value="Premier Christian Radio">Premier Christian Radio</option>
+                            <option value="Premier Praise">Premier Praise</option>
+                            <option value="Premier Gospel">Premier Gospel</option>
                             <option value="Digital">Digital</option>
                             <option value="Magazine">Magazine</option>
                             <option value="Unbelievable">Unbelievable</option>
@@ -168,6 +170,7 @@ export default function GuestFormModal({ onClose }) {
                             <option value="PCR Radio Room">PCR Radio Room</option>
                             <option value="Praise Radio Room">Praise Radio Room</option>
                             <option value="Gospel Room">Gospel Room</option>
+                            <option value="Zoom">Zoom</option>
                         </select>
                     </div>
                     <div className="form-group">

@@ -23,7 +23,10 @@ export default function AdminPortal({ onEditGuest }) {
 
     const getTeamColor = (team) => {
         switch (team) {
-            case 'Radio': return '#3b82f6';
+            case 'Radio':
+            case 'Premier Christian Radio':
+            case 'Premier Praise':
+            case 'Premier Gospel': return '#3b82f6';
             case 'Digital': return '#f97316';
             case 'Magazine': return '#22c55e';
             case 'Unbelievable': return '#7c3aed';

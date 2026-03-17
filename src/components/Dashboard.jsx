@@ -24,7 +24,10 @@ export default function Dashboard({ activeTab }) {
 
     const getDepartmentBadge = (dept) => {
         switch (dept) {
-            case 'Radio': return <span className="badge badge-radio">Radio</span>;
+            case 'Radio':
+            case 'Premier Christian Radio':
+            case 'Premier Praise':
+            case 'Premier Gospel': return <span className="badge badge-radio">{dept}</span>;
             case 'Digital': return <span className="badge badge-digital">Digital</span>;
             case 'Magazine': return <span className="badge badge-magazine">Magazine</span>;
             case 'Unbelievable': return <span className="badge badge-unbelievable">Unbelievable</span>;
@@ -34,7 +37,10 @@ export default function Dashboard({ activeTab }) {
 
     const getDepartmentIcon = (dept) => {
         switch (dept) {
-            case 'Radio': return <RadioIcon size={16} />;
+            case 'Radio':
+            case 'Premier Christian Radio':
+            case 'Premier Praise':
+            case 'Premier Gospel': return <RadioIcon size={16} />;
             case 'Digital': return <Video size={16} />;
             case 'Magazine': return <BookOpen size={16} />;
             case 'Unbelievable': return <Mic size={16} />;
@@ -236,13 +242,13 @@ export default function Dashboard({ activeTab }) {
                                                         key={g.id}
                                                         className="calendar-event"
                                                         style={{
-                                                            backgroundColor: g.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
+                                                            backgroundColor: ['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(g.team) ? 'var(--color-dept-radio-bg)' :
                                                                 g.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
                                                                     g.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
-                                                            color: g.team === 'Radio' ? '#1d4ed8' :
+                                                            color: ['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(g.team) ? '#1d4ed8' :
                                                                 g.team === 'Digital' ? '#c2410c' :
                                                                     g.team === 'Magazine' ? '#15803d' : '#6d28d9',
-                                                            borderLeft: `3px solid ${g.team === 'Radio' ? '#3b82f6' : g.team === 'Digital' ? '#f97316' : g.team === 'Magazine' ? '#22c55e' : '#7c3aed'}`,
+                                                            borderLeft: `3px solid ${['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(g.team) ? '#3b82f6' : g.team === 'Digital' ? '#f97316' : g.team === 'Magazine' ? '#22c55e' : '#7c3aed'}`,
                                                             cursor: 'pointer',
                                                         }}
                                                         title={`${g.slot} - Request by ${g.createdBy}`}
@@ -396,7 +402,7 @@ export default function Dashboard({ activeTab }) {
                             <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>Search Results in Master Calendar ({confirmedGuests.length})</h3>
                             <div className="dashboard-grid" style={{ opacity: 0.8 }}>
                                 {confirmedGuests.map(g => (
-                                    <div key={g.id} className="card" style={{ borderTop: `4px solid ${g.team === 'Radio' ? 'var(--color-dept-radio)' : g.team === 'Digital' ? 'var(--color-dept-digital)' : 'var(--color-dept-magazine)'}` }}>
+                                    <div key={g.id} className="card" style={{ borderTop: `4px solid ${['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(g.team) ? 'var(--color-dept-radio)' : g.team === 'Digital' ? 'var(--color-dept-digital)' : 'var(--color-dept-magazine)'}` }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <strong>{g.name}</strong>
                                             {getDepartmentBadge(g.team)}
@@ -424,7 +430,7 @@ export default function Dashboard({ activeTab }) {
                         className="modal-content animate-fade-in"
                         onClick={(e) => e.stopPropagation()}
                         style={{
-                            borderTop: `5px solid ${selectedGuest.team === 'Radio' ? '#3b82f6' :
+                            borderTop: `5px solid ${['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(selectedGuest.team) ? '#3b82f6' :
                                 selectedGuest.team === 'Digital' ? '#f97316' :
                                     selectedGuest.team === 'Magazine' ? '#22c55e' : '#7c3aed'
                                 }`,
@@ -435,11 +441,11 @@ export default function Dashboard({ activeTab }) {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <div style={{
                                     width: '44px', height: '44px', borderRadius: '50%',
-                                    background: selectedGuest.team === 'Radio' ? 'var(--color-dept-radio-bg)' :
+                                    background: ['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(selectedGuest.team) ? 'var(--color-dept-radio-bg)' :
                                         selectedGuest.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
                                             selectedGuest.team === 'Magazine' ? 'var(--color-dept-magazine-bg)' : 'var(--color-dept-unbelievable-bg)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: selectedGuest.team === 'Radio' ? '#1d4ed8' :
+                                    color: ['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(selectedGuest.team) ? '#1d4ed8' :
                                         selectedGuest.team === 'Digital' ? '#c2410c' :
                                             selectedGuest.team === 'Magazine' ? '#15803d' : '#6d28d9',
                                 }}>
@@ -635,10 +641,12 @@ export default function Dashboard({ activeTab }) {
                                     <label className="label">Requesting Team</label>
                                     <select
                                         className="input-field"
-                                        value={editData.team || 'Radio'}
+                                        value={editData.team || 'Premier Christian Radio'}
                                         onChange={(e) => setEditData({ ...editData, team: e.target.value })}
                                     >
-                                        <option value="Radio">Radio</option>
+                                        <option value="Premier Christian Radio">Premier Christian Radio</option>
+                                        <option value="Premier Praise">Premier Praise</option>
+                                        <option value="Premier Gospel">Premier Gospel</option>
                                         <option value="Digital">Digital</option>
                                         <option value="Magazine">Magazine</option>
                                         <option value="Unbelievable">Unbelievable</option>
@@ -672,6 +680,7 @@ export default function Dashboard({ activeTab }) {
                                     <option value="PCR Radio Room">PCR Radio Room</option>
                                     <option value="Praise Radio Room">Praise Radio Room</option>
                                     <option value="Gospel Room">Gospel Room</option>
+                                    <option value="Zoom">Zoom</option>
                                 </select>
                             </div>
 

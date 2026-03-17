@@ -200,10 +200,12 @@ function App() {
                   <label className="label">Requesting Team</label>
                   <select
                     className="input-field"
-                    value={editData.team || 'Radio'}
+                    value={editData.team || 'Premier Christian Radio'}
                     onChange={(e) => setEditData({ ...editData, team: e.target.value })}
                   >
-                    <option value="Radio">Radio</option>
+                    <option value="Premier Christian Radio">Premier Christian Radio</option>
+                    <option value="Premier Praise">Premier Praise</option>
+                    <option value="Premier Gospel">Premier Gospel</option>
                     <option value="Digital">Digital</option>
                     <option value="Magazine">Magazine</option>
                     <option value="Unbelievable">Unbelievable</option>

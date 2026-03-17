@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const AppContext = createContext();
 
 const initialGuests = [
-  { id: 1, name: 'John Peterson', team: 'Radio', slot: '15 min slot on Inspirational Breakfast', status: 'Pending', crossPollination: null, notes: '', createdBy: 'Sarah Connor', timestamp: new Date().toISOString(), eventDate: new Date().toISOString() },
+  { id: 1, name: 'John Peterson', team: 'Premier Christian Radio', slot: '15 min slot on Inspirational Breakfast', status: 'Pending', crossPollination: null, notes: '', createdBy: 'Sarah Connor', timestamp: new Date().toISOString(), eventDate: new Date().toISOString() },
   { id: 2, name: 'Jane Smith', team: 'Digital', slot: 'Social Media IG Live 10min', status: 'Confirmed', crossPollination: true, notes: 'Available till 2pm for Quick Fire questions', createdBy: 'Mike Tyson', timestamp: new Date(Date.now() - 86400000).toISOString(), eventDate: new Date(Date.now() + 86400000).toISOString() },
   { id: 3, name: 'Pastor David', team: 'Magazine', slot: 'Full Interview Feature', status: 'Confirmed', crossPollination: false, notes: '', createdBy: 'Alice Wonderland', timestamp: new Date(Date.now() - 172800000).toISOString(), eventDate: new Date(Date.now() + 172800000 * 2).toISOString() },
 ];
