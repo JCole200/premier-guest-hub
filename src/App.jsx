@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Search, Calendar, PlusCircle, LayoutDashboard, Shield, LogOut, LogIn, Settings } from 'lucide-react';
+import { Search, Calendar, PlusCircle, LayoutDashboard, Shield, LogOut, LogIn, Settings, Users } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import Dashboard from './components/Dashboard';
 import GuestFormModal from './components/GuestFormModal';
 import Login from './components/Login';
 import AdminPortal from './components/AdminPortal';
+import ContactDetails from './components/ContactDetails';
 import { Pencil, X } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
@@ -73,6 +74,15 @@ function App() {
             Master Calendar
           </button>
 
+          <button
+            className={`nav-link w-full text-left ${activeTab === 'contacts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('contacts')}
+            style={{ width: '100%', background: activeTab === 'contacts' ? '' : 'transparent', border: 'none', cursor: 'pointer' }}
+          >
+            <Users size={20} />
+            Contact Details
+          </button>
+
           {isLoggedIn && (
             <button
               className={`nav-link w-full text-left ${activeTab === 'admin' ? 'active' : ''}`}
@@ -130,11 +140,13 @@ function App() {
         <header className="top-bar">
           <div>
             <h2 style={{ fontSize: '1.8rem', fontWeight: '600', color: 'var(--color-primary-dark)' }}>
-              {activeTab === 'dashboard' ? 'Overview' : activeTab === 'calendar' ? 'Master Calendar' : 'Admin Portal'}
+              {activeTab === 'dashboard' ? 'Overview' : activeTab === 'calendar' ? 'Master Calendar' : activeTab === 'contacts' ? 'Contact Details' : 'Admin Portal'}
             </h2>
             <p style={{ color: 'var(--color-text-muted)' }}>
               {activeTab === 'admin'
                 ? 'System-wide guest booking management and overrides.'
+                : activeTab === 'contacts'
+                ? 'Guest contact directory and details.'
                 : 'Manage and coordinate guest appearances across Premier Media.'}
             </p>
           </div>
@@ -153,6 +165,8 @@ function App() {
 
         {activeTab === 'admin' ? (
           <AdminPortal onEditGuest={handleEditGuest} />
+        ) : activeTab === 'contacts' ? (
+          <ContactDetails />
         ) : (
           <Dashboard activeTab={activeTab} />
         )}
@@ -193,6 +207,29 @@ function App() {
                   onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                   required
                 />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="label">Email Address</label>
+                  <input
+                    type="email"
+                    className="input-field"
+                    value={editData.email || ''}
+                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="label">Phone Number</label>
+                  <input
+                    type="tel"
+                    className="input-field"
+                    value={editData.phone || ''}
+                    onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                    required
+                  />
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

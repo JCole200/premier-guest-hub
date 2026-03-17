@@ -7,6 +7,8 @@ export default function GuestFormModal({ onClose }) {
     const [formData, setFormData] = useState({
         submittedBy: '',
         name: '',
+        email: '',
+        phone: '',
         team: 'Premier Christian Radio',
         room: 'Radio Studio 1',
         slot: '',
@@ -138,6 +140,31 @@ export default function GuestFormModal({ onClose }) {
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             required
                         />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="form-group">
+                            <label className="label">Email Address</label>
+                            <input
+                                type="email"
+                                className="input-field"
+                                placeholder="guest@example.com"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="label">Phone Number</label>
+                            <input
+                                type="tel"
+                                className="input-field"
+                                placeholder="+44 7123 456789"
+                                value={formData.phone}
+                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                required
+                            />
+                        </div>
                     </div>
 
                     <div className="form-group">
