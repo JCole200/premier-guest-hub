@@ -67,8 +67,21 @@ export default function Dashboard({ activeTab }) {
         return matchesSearch && matchesTeam && matchesRoom;
     };
 
-    const guestsToday = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), today)).filter(filterForSidePanel);
-    const guestsTomorrow = confirmedGuests.filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), tomorrow)).filter(filterForSidePanel);
+    const sortByTime = (a, b) => {
+        const timeA = a.eventDate ? new Date(a.eventDate).getTime() : 0;
+        const timeB = b.eventDate ? new Date(b.eventDate).getTime() : 0;
+        return timeA - timeB;
+    };
+
+    const guestsToday = confirmedGuests
+        .filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), today))
+        .filter(filterForSidePanel)
+        .sort(sortByTime);
+
+    const guestsTomorrow = confirmedGuests
+        .filter(g => g.eventDate && isSameDay(parseISO(g.eventDate), tomorrow))
+        .filter(filterForSidePanel)
+        .sort(sortByTime);
 
     const handleConfirmClick = (id) => {
         const guest = guests.find(g => g.id === id);
@@ -368,10 +381,15 @@ export default function Dashboard({ activeTab }) {
                                         guestsToday.map(g => (
                                             <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-                                                    <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
+                                                    <div>
+                                                        <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
+                                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-primary)', fontWeight: '600' }}>
+                                                            {format(parseISO(g.eventDate), 'HH:mm')}
+                                                        </div>
+                                                    </div>
                                                     {getDepartmentIcon(g.team)}
                                                 </div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.slot}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.interviewBrief || g.slot}</div>
                                                 <div style={{ marginTop: '0.5rem' }}>{getDepartmentBadge(g.team)}</div>
                                             </div>
                                         ))
@@ -392,10 +410,15 @@ export default function Dashboard({ activeTab }) {
                                         guestsTomorrow.map(g => (
                                             <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-                                                    <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
+                                                    <div>
+                                                        <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
+                                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-primary)', fontWeight: '600' }}>
+                                                            {format(parseISO(g.eventDate), 'HH:mm')}
+                                                        </div>
+                                                    </div>
                                                     {getDepartmentIcon(g.team)}
                                                 </div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.slot}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{g.interviewBrief || g.slot}</div>
                                                 <div style={{ marginTop: '0.5rem' }}>{getDepartmentBadge(g.team)}</div>
                                             </div>
                                         ))
