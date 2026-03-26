@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Download, Users, Phone, Mail, Clock, CalendarIcon } from 'lucide-react';
+import { Search, Download, Users, Phone, Mail, Clock, CalendarIcon, X, Globe, MessageSquare, Briefcase, Award } from 'lucide-react';
 import { useAppContext } from '../AppContext';
 import { format, parseISO } from 'date-fns';
 
@@ -7,6 +7,7 @@ export default function ContactDetails() {
     const { guests } = useAppContext();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('latest'); // latest, nameAsc, nameDesc
+    const [selectedGuest, setSelectedGuest] = useState(null);
 
     const filteredAndSortedGuests = useMemo(() => {
         let result = guests;
@@ -17,7 +18,9 @@ export default function ContactDetails() {
             result = result.filter(g => 
                 (g.name && g.name.toLowerCase().includes(lowerQuery)) ||
                 (g.email && g.email.toLowerCase().includes(lowerQuery)) ||
-                (g.phone && g.phone.toLowerCase().includes(lowerQuery))
+                (g.phone && g.phone.toLowerCase().includes(lowerQuery)) ||
+                (g.organisation && g.organisation.toLowerCase().includes(lowerQuery)) ||
+                (g.expertise && g.expertise.toLowerCase().includes(lowerQuery))
             );
         }
 
@@ -67,7 +70,6 @@ export default function ContactDetails() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        document.body.removeChild(link);
     };
 
     const getInitials = (name) => {
@@ -85,7 +87,7 @@ export default function ContactDetails() {
                         <Search className="search-icon" size={20} />
                         <input
                             type="text"
-                            placeholder="Search by name, email, or phone..."
+                            placeholder="Search by name, organisation, or expertise..."
                             className="input-field"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -131,7 +133,7 @@ export default function ContactDetails() {
                             </tr>
                         ) : (
                             filteredAndSortedGuests.map(guest => (
-                                <tr key={guest.id}>
+                                <tr key={guest.id} onClick={() => setSelectedGuest(guest)} style={{ cursor: 'pointer' }}>
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                             <div className="contact-avatar">
@@ -154,9 +156,9 @@ export default function ContactDetails() {
                                     <td>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                                             {guest.email && (
-                                                <a href={`mailto:${guest.email}`} style={{ color: 'var(--color-primary)', textDecoration: 'none', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <div style={{ color: 'var(--color-primary)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                                     <Mail size={12} /> {guest.email}
-                                                </a>
+                                                </div>
                                             )}
                                             {guest.phone && (
                                                 <div style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-text-main)' }}>
@@ -169,13 +171,13 @@ export default function ContactDetails() {
                                         <div style={{ display: 'flex', gap: '0.75rem' }}>
                                             {guest.socialHandle ? (
                                                 <div title={guest.socialHandle} style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}>
-                                                    <Users size={14} /> {guest.socialHandle}
+                                                    <MessageSquare size={14} /> {guest.socialHandle}
                                                 </div>
                                             ) : '-'}
                                             {guest.website && (
-                                                <a href={guest.website} target="_blank" rel="noopener noreferrer" title={guest.website} style={{ color: 'var(--color-secondary)' }}>
-                                                    <Search size={14} />
-                                                </a>
+                                                <div title={guest.website} style={{ color: 'var(--color-secondary)' }}>
+                                                    <Globe size={14} />
+                                                </div>
                                             )}
                                         </div>
                                     </td>
@@ -202,6 +204,113 @@ export default function ContactDetails() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Contact Detail Modal */}
+            {selectedGuest && (
+                <div className="modal-overlay" onClick={() => setSelectedGuest(null)}>
+                    <div className="modal-content animate-fade-in" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', borderTop: '4px solid var(--color-primary)' }}>
+                        <div className="modal-header" style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div className="contact-avatar" style={{ width: '48px', height: '48px', fontSize: '1.2rem' }}>
+                                    {getInitials(selectedGuest.name)}
+                                </div>
+                                <div>
+                                    <h3 style={{ margin: 0 }}>{selectedGuest.title ? `${selectedGuest.title} ` : ''}{selectedGuest.name}</h3>
+                                    <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>{selectedGuest.team}</div>
+                                </div>
+                            </div>
+                            <button onClick={() => setSelectedGuest(null)} className="btn-outline" style={{ border: 'none', padding: '0.25rem' }}><X size={20} /></button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                <div>
+                                    <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Briefcase size={14} /> Organisation
+                                    </label>
+                                    <div style={{ fontSize: '0.95rem', fontWeight: '500' }}>{selectedGuest.organisation || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <label className="label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Award size={14} /> Expertise
+                                    </label>
+                                    <div style={{ fontSize: '0.95rem', fontWeight: '500' }}>{selectedGuest.expertise || 'General'}</div>
+                                </div>
+                            </div>
+
+                            <div style={{ borderTop: '1px solid #eee', paddingTop: '1.5rem' }}>
+                                <label className="label" style={{ marginBottom: '0.75rem' }}>Contact Information</label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {selectedGuest.email && (
+                                        <a href={`mailto:${selectedGuest.email}`} className="side-panel-card" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', padding: '0.75rem' }}>
+                                            <div style={{ background: 'var(--color-bg-light)', padding: '0.5rem', borderRadius: '8px', color: 'var(--color-primary)' }}>
+                                                <Mail size={18} />
+                                            </div>
+                                            <div style={{ overflow: 'hidden' }}>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Email Address</div>
+                                                <div style={{ fontSize: '0.9rem', color: 'var(--color-text-main)', textOverflow: 'ellipsis', overflow: 'hidden' }}>{selectedGuest.email}</div>
+                                            </div>
+                                        </a>
+                                    )}
+                                    {selectedGuest.phone && (
+                                        <a href={`tel:${selectedGuest.phone}`} className="side-panel-card" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', padding: '0.75rem' }}>
+                                            <div style={{ background: 'var(--color-bg-light)', padding: '0.5rem', borderRadius: '8px', color: 'var(--color-primary)' }}>
+                                                <Phone size={18} />
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Phone Number</div>
+                                                <div style={{ fontSize: '0.9rem', color: 'var(--color-text-main)' }}>{selectedGuest.phone}</div>
+                                            </div>
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+
+                            {(selectedGuest.socialHandle || selectedGuest.website) && (
+                                <div style={{ borderTop: '1px solid #eee', paddingTop: '1.5rem' }}>
+                                    <label className="label" style={{ marginBottom: '0.75rem' }}>Social & Web Presence</label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                        {selectedGuest.socialHandle && (
+                                            <div className="side-panel-card" style={{ padding: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <MessageSquare size={16} style={{ color: 'var(--color-primary)' }} />
+                                                <div>
+                                                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Handle</div>
+                                                    <div style={{ fontSize: '0.85rem', fontWeight: '600' }}>{selectedGuest.socialHandle}</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {selectedGuest.website && (
+                                            <a href={selectedGuest.website} target="_blank" rel="noopener noreferrer" className="side-panel-card" style={{ padding: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
+                                                <Globe size={16} style={{ color: 'var(--color-secondary)' }} />
+                                                <div>
+                                                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Website</div>
+                                                    <div style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--color-secondary)' }}>Visit Site</div>
+                                                </div>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div style={{ borderTop: '1px solid #eee', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Last Booking</div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: '500' }}>
+                                        {selectedGuest.isTBC ? 'Date TBC' : selectedGuest.eventDate ? format(parseISO(selectedGuest.eventDate), 'do MMM yyyy') : 'N/A'}
+                                    </div>
+                                </div>
+                                <span className={`badge badge-${selectedGuest.status.toLowerCase()}`}>
+                                    {selectedGuest.status}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '2.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button onClick={() => setSelectedGuest(null)} className="btn btn-primary" style={{ width: '100%' }}>Close Profile</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
