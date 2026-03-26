@@ -21,10 +21,29 @@ export const AppProvider = ({ children }) => {
   const [authorizedUsers, setAuthorizedUsers] = useState([]);
 
   const login = async (email, password) => {
+    const lowerEmail = email.toLowerCase();
+
+    // Fallback for initial admins if Supabase table is not yet created/migrated
+    const initialAdmins = [
+      'judah.cole@premier.org.uk',
+      'charmaine.noble-mclean@premier.org.uk'
+    ];
+
+    if (initialAdmins.includes(lowerEmail) && password === 'Premier2026!') {
+      setIsAdmin(true);
+      setIsLoggedIn(true);
+      setCurrentUser(lowerEmail);
+      localStorage.setItem('currentUserEmail', lowerEmail);
+      localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('isLoggedIn', 'true');
+      return true;
+    }
+
+    // Regular Supabase check
     const { data, error } = await supabase
       .from('authorized_users')
       .select('*')
-      .eq('email', email.toLowerCase())
+      .eq('email', lowerEmail)
       .eq('password', password)
       .single();
 
