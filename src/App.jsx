@@ -8,6 +8,7 @@ import AdminPortal from './components/AdminPortal';
 import ContactDetails from './components/ContactDetails';
 import { Pencil, X } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { EXPERTISE_OPTIONS } from './constants';
 
 function App() {
   const {
@@ -24,7 +25,10 @@ function App() {
   const [editData, setEditData] = useState({});
 
   const handleEditGuest = (guest) => {
-    setEditData({ ...guest });
+    setEditData({ 
+      ...guest,
+      interviewBrief: guest.interviewBrief || guest.slot || ''
+    });
     setEditModal({ isOpen: true, guest });
   };
 
@@ -198,15 +202,49 @@ function App() {
             </div>
 
             <form onSubmit={handleEditSave}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="label">Guest Name</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={editData.name || ''}
+                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="label">Title</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={editData.title || ''}
+                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                  />
+                </div>
+              </div>
+
               <div className="form-group">
-                <label className="label">Guest Name</label>
+                <label className="label">Organisation</label>
                 <input
                   type="text"
                   className="input-field"
-                  value={editData.name || ''}
-                  onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                  required
+                  value={editData.organisation || ''}
+                  onChange={(e) => setEditData({ ...editData, organisation: e.target.value })}
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="label">Expertise</label>
+                <select
+                  className="input-field"
+                  value={editData.expertise || EXPERTISE_OPTIONS[0]}
+                  onChange={(e) => setEditData({ ...editData, expertise: e.target.value })}
+                >
+                  {EXPERTISE_OPTIONS.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -228,6 +266,27 @@ function App() {
                     value={editData.phone || ''}
                     onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
                     required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="label">Social Media Handle</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={editData.socialHandle || ''}
+                    onChange={(e) => setEditData({ ...editData, socialHandle: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="label">Website Details</label>
+                  <input
+                    type="url"
+                    className="input-field"
+                    value={editData.website || ''}
+                    onChange={(e) => setEditData({ ...editData, website: e.target.value })}
                   />
                 </div>
               </div>
@@ -403,12 +462,12 @@ function App() {
               </div>
 
               <div className="form-group">
-                <label className="label">Proposed Slot</label>
+                <label className="label">Interview brief</label>
                 <input
                   type="text"
                   className="input-field"
-                  value={editData.slot || ''}
-                  onChange={(e) => setEditData({ ...editData, slot: e.target.value })}
+                  value={editData.interviewBrief || editData.slot || ''}
+                  onChange={(e) => setEditData({ ...editData, interviewBrief: e.target.value })}
                   required
                 />
               </div>

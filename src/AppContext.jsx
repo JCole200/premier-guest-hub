@@ -81,14 +81,20 @@ export const AppProvider = ({ children }) => {
 
   const addGuest = async (guest) => {
     const bookerName = guest.submittedBy || 'Staff Member';
-    const newGuest = {
+    
+    // Map frontend field 'interviewBrief' to database column 'slot'
+    const dbGuest = {
       ...guest,
+      slot: guest.interviewBrief || guest.slot || '',
       timestamp: new Date().toISOString(),
       createdBy: bookerName
     };
-    delete newGuest.submittedBy;
     
-    const { data, error } = await supabase.from('guests').insert([newGuest]).select();
+    // Remove frontend-only or renamed fields before database insertion
+    delete dbGuest.submittedBy;
+    delete dbGuest.interviewBrief;
+    
+    const { data, error } = await supabase.from('guests').insert([dbGuest]).select();
     if (error) {
       console.error('Error adding guest:', error);
     } else if (data) {
@@ -114,9 +120,16 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateGuest = async (updatedGuest) => {
+    // Map frontend field 'interviewBrief' to database column 'slot'
+    const dbGuest = {
+      ...updatedGuest,
+      slot: updatedGuest.interviewBrief || updatedGuest.slot || ''
+    };
+    delete dbGuest.interviewBrief;
+
     const { data, error } = await supabase
       .from('guests')
-      .update(updatedGuest)
+      .update(dbGuest)
       .eq('id', updatedGuest.id)
       .select();
       

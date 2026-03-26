@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useAppContext } from '../AppContext';
+import { EXPERTISE_OPTIONS } from '../constants';
 
 export default function GuestFormModal({ onClose }) {
     const { addGuest } = useAppContext();
     const [formData, setFormData] = useState({
         submittedBy: '',
         name: '',
+        title: '',
+        organisation: '',
         email: '',
         phone: '',
+        socialHandle: '',
+        website: '',
+        expertise: EXPERTISE_OPTIONS[0],
         team: 'Premier Christian Radio',
         room: 'Radio Studio 1',
-        slot: '',
+        interviewBrief: '',
         status: 'Pending',
         isTBC: false,
         crossPollination: null,
@@ -131,16 +137,52 @@ export default function GuestFormModal({ onClose }) {
                         />
                     </div>
 
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="form-group">
+                            <label className="label">Guest Name</label>
+                            <input
+                                type="text"
+                                className="input-field"
+                                placeholder="e.g. Tim Keller"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="label">Title</label>
+                            <input
+                                type="text"
+                                className="input-field"
+                                placeholder="e.g. Rev, Dr, etc."
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
                     <div className="form-group">
-                        <label className="label">Guest Name</label>
+                        <label className="label">Organisation</label>
                         <input
                             type="text"
                             className="input-field"
-                            placeholder="e.g. Tim Keller"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            required
+                            placeholder="e.g. Redeemer Presbyterian Church"
+                            value={formData.organisation}
+                            onChange={(e) => setFormData({ ...formData, organisation: e.target.value })}
                         />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="label">Expertise</label>
+                        <select
+                            className="input-field"
+                            value={formData.expertise}
+                            onChange={(e) => setFormData({ ...formData, expertise: e.target.value })}
+                        >
+                            {EXPERTISE_OPTIONS.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -168,7 +210,30 @@ export default function GuestFormModal({ onClose }) {
                         </div>
                     </div>
 
-                    <div className="form-group">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="form-group">
+                            <label className="label">Social Media Handle</label>
+                            <input
+                                type="text"
+                                className="input-field"
+                                placeholder="@username"
+                                value={formData.socialHandle}
+                                onChange={(e) => setFormData({ ...formData, socialHandle: e.target.value })}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="label">Website Details</label>
+                            <input
+                                type="url"
+                                className="input-field"
+                                placeholder="https://..."
+                                value={formData.website}
+                                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
                         <label className="label">Requesting Team</label>
                         <select
                             className="input-field"
@@ -228,7 +293,7 @@ export default function GuestFormModal({ onClose }) {
                                         const mm = String(d.getMonth() + 1).padStart(2, '0');
                                         const dd = String(d.getDate()).padStart(2, '0');
                                         return `${yyyy}-${mm}-${dd}`;
-                                    } catch(e) { return ''; }
+                                    } catch (e) { return ''; }
                                 })()}
                                 onChange={(e) => {
                                     let d = new Date(formData.eventDate || Date.now());
@@ -259,7 +324,7 @@ export default function GuestFormModal({ onClose }) {
                                         const d = new Date(formData.eventDate);
                                         if (isNaN(d.getTime())) return '12:00';
                                         return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-                                    } catch(e) { return '12:00'; }
+                                    } catch (e) { return '12:00'; }
                                 })()}
                                 onChange={(e) => {
                                     let d = new Date(formData.eventDate || Date.now());
@@ -295,7 +360,7 @@ export default function GuestFormModal({ onClose }) {
                                         const mm = String(d.getMonth() + 1).padStart(2, '0');
                                         const dd = String(d.getDate()).padStart(2, '0');
                                         return `${yyyy}-${mm}-${dd}`;
-                                    } catch(e) { return ''; }
+                                    } catch (e) { return ''; }
                                 })()}
                                 onChange={(e) => {
                                     let d = new Date(formData.broadcastDate || Date.now());
@@ -324,7 +389,7 @@ export default function GuestFormModal({ onClose }) {
                                         const d = new Date(formData.broadcastDate);
                                         if (isNaN(d.getTime())) return '12:00';
                                         return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-                                    } catch(e) { return '12:00'; }
+                                    } catch (e) { return '12:00'; }
                                 })()}
                                 onChange={(e) => {
                                     let d = new Date(formData.broadcastDate || Date.now());
@@ -342,13 +407,13 @@ export default function GuestFormModal({ onClose }) {
                     </div>
 
                     <div className="form-group">
-                        <label className="label">Proposed Slot</label>
+                        <label className="label">Interview brief</label>
                         <input
                             type="text"
                             className="input-field"
                             placeholder='e.g. "15 min slot on Inspirational Breakfast"'
-                            value={formData.slot}
-                            onChange={(e) => setFormData({ ...formData, slot: e.target.value })}
+                            value={formData.interviewBrief}
+                            onChange={(e) => setFormData({ ...formData, interviewBrief: e.target.value })}
                             required
                         />
                     </div>

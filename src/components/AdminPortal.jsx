@@ -142,15 +142,18 @@ export default function AdminPortal({ onEditGuest }) {
                                 filteredGuests.map(guest => (
                                     <tr key={guest.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s' }}>
                                         <td style={{ padding: '1rem 1.25rem' }}>
-                                            <div style={{ fontWeight: '700', color: 'var(--color-text-main)' }}>{guest.name}</div>
+                                            <div style={{ fontWeight: '700', color: 'var(--color-text-main)' }}>
+                                                {guest.title ? `${guest.title} ` : ''}{guest.name}
+                                            </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.25rem' }}>
                                                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: getTeamColor(guest.team) }}></div>
                                                 <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{guest.team}</span>
                                             </div>
                                         </td>
                                         <td style={{ padding: '1rem 1.25rem' }}>
-                                            <div style={{ fontSize: '0.85rem', fontWeight: '500' }}>{guest.slot}</div>
+                                            <div style={{ fontSize: '0.85rem', fontWeight: '500' }}>{guest.interviewBrief || guest.slot}</div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                                                {guest.organisation ? `${guest.organisation} • ` : ''}
                                                 {guest.isTBC ? 'Date TBC' : format(parseISO(guest.eventDate), 'EEE d MMM yyyy, HH:mm')}
                                             </div>
                                         </td>
@@ -279,7 +282,7 @@ export default function AdminPortal({ onEditGuest }) {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
-                                    <label className="label">Brief Description (Slot details)</label>
+                                    <label className="label">Interview brief / Brief Description</label>
                                     <input
                                         type="text"
                                         className="input-field"

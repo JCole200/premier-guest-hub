@@ -39,11 +39,16 @@ export default function ContactDetails() {
     }, [guests, searchTerm, sortBy]);
 
     const handleExportCSV = () => {
-        const headers = ['Name', 'Email', 'Phone', 'Team', 'Event Date', 'Status'];
+        const headers = ['Name', 'Title', 'Organisation', 'Expertise', 'Email', 'Phone', 'Social Handle', 'Website', 'Team', 'Event Date', 'Status'];
         const rows = filteredAndSortedGuests.map(g => [
             `"${g.name || ''}"`,
+            `"${g.title || ''}"`,
+            `"${g.organisation || ''}"`,
+            `"${g.expertise || ''}"`,
             `"${g.email || ''}"`,
             `"${g.phone || ''}"`,
+            `"${g.socialHandle || ''}"`,
+            `"${g.website || ''}"`,
             `"${g.team || ''}"`,
             `"${g.eventDate ? format(parseISO(g.eventDate), 'yyyy-MM-dd HH:mm') : 'TBC'}"`,
             `"${g.status || ''}"`
@@ -109,8 +114,9 @@ export default function ContactDetails() {
                     <thead>
                         <tr>
                             <th>Guest Name</th>
-                            <th>Email Address</th>
-                            <th>Phone Number</th>
+                            <th>Organisation & Expertise</th>
+                            <th>Contact Info</th>
+                            <th>Social / Web</th>
                             <th>Event Date</th>
                             <th>Status</th>
                         </tr>
@@ -118,7 +124,7 @@ export default function ContactDetails() {
                     <tbody>
                         {filteredAndSortedGuests.length === 0 ? (
                             <tr>
-                                <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
                                     <Users size={40} style={{ margin: '0 auto 1rem', opacity: 0.2 }} />
                                     No contacts found matching your criteria.
                                 </td>
@@ -132,37 +138,56 @@ export default function ContactDetails() {
                                                 {getInitials(guest.name)}
                                             </div>
                                             <div>
-                                                <div style={{ fontWeight: '600', color: 'var(--color-primary-dark)' }}>{guest.name}</div>
+                                                <div style={{ fontWeight: '600', color: 'var(--color-primary-dark)' }}>
+                                                    {guest.title ? `${guest.title} ` : ''}{guest.name}
+                                                </div>
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{guest.team}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        {guest.email ? (
-                                            <a href={`mailto:${guest.email}`} style={{ color: 'var(--color-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <Mail size={14} style={{ opacity: 0.6 }} /> {guest.email}
-                                            </a>
-                                        ) : (
-                                            <span style={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <Mail size={14} style={{ opacity: 0.3 }} /> -
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <Phone size={14} style={{ opacity: guest.phone ? 0.6 : 0.3, color: guest.phone ? 'var(--color-text-main)' : 'var(--color-text-muted)' }} />
-                                            {guest.phone || <span style={{ color: 'var(--color-text-muted)' }}>-</span>}
+                                        <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>{guest.organisation || '-'}</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>
+                                            {guest.expertise || 'No expertise listed'}
                                         </div>
                                     </td>
                                     <td>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <CalendarIcon size={14} style={{ opacity: 0.6, color: 'var(--color-text-main)' }} />
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                                            {guest.email && (
+                                                <a href={`mailto:${guest.email}`} style={{ color: 'var(--color-primary)', textDecoration: 'none', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                    <Mail size={12} /> {guest.email}
+                                                </a>
+                                            )}
+                                            {guest.phone && (
+                                                <div style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-text-main)' }}>
+                                                    <Phone size={12} /> {guest.phone}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                            {guest.socialHandle ? (
+                                                <div title={guest.socialHandle} style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}>
+                                                    <Users size={14} /> {guest.socialHandle}
+                                                </div>
+                                            ) : '-'}
+                                            {guest.website && (
+                                                <a href={guest.website} target="_blank" rel="noopener noreferrer" title={guest.website} style={{ color: 'var(--color-secondary)' }}>
+                                                    <Search size={14} />
+                                                </a>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                            <CalendarIcon size={14} style={{ opacity: 0.6 }} />
                                             {guest.isTBC ? (
                                                 <span style={{ color: '#f59e0b', fontWeight: '600' }}>Date TBC</span>
                                             ) : guest.eventDate ? (
-                                                format(parseISO(guest.eventDate), 'do MMM yyyy, HH:mm')
+                                                format(parseISO(guest.eventDate), 'do MMM yyyy')
                                             ) : (
-                                                <span style={{ color: 'var(--color-text-muted)' }}>Unknown</span>
+                                                'Unknown'
                                             )}
                                         </div>
                                     </td>
