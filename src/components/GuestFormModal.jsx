@@ -264,6 +264,7 @@ export default function GuestFormModal({ onClose }) {
                             <option value="Praise Radio Room">Praise Radio Room</option>
                             <option value="Gospel Room">Gospel Room</option>
                             <option value="Zoom">Zoom</option>
+                            <option value="None">None</option>
                         </select>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

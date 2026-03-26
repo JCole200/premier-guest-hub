@@ -364,6 +364,7 @@ export default function Dashboard({ activeTab }) {
                                         <option value="Praise Radio Room">Praise Radio Room</option>
                                         <option value="Gospel Room">Gospel Room</option>
                                         <option value="Zoom">Zoom</option>
+                                        <option value="None">None</option>
                                     </select>
                                 </div>
                             </div>
@@ -798,6 +799,7 @@ export default function Dashboard({ activeTab }) {
                                     <option value="Praise Radio Room">Praise Radio Room</option>
                                     <option value="Gospel Room">Gospel Room</option>
                                     <option value="Zoom">Zoom</option>
+                                    <option value="None">None</option>
                                 </select>
                             </div>
 

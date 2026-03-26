@@ -247,6 +247,21 @@ function App() {
                 </select>
               </div>
 
+              <div className="form-group">
+                <label className="label">Room</label>
+                <select
+                  className="input-field"
+                  value={editData.room || 'Studio 1'}
+                  onChange={(e) => setEditData({ ...editData, room: e.target.value })}
+                >
+                  <option value="Studio 1">Studio 1</option>
+                  <option value="Studio 2">Studio 2</option>
+                  <option value="Studio 3">Studio 3</option>
+                  <option value="Zoom">Zoom</option>
+                  <option value="None">None</option>
+                </select>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="label">Email Address</label>
