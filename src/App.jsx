@@ -251,12 +251,12 @@ function App() {
                 <label className="label">Room</label>
                 <select
                   className="input-field"
-                  value={editData.room || 'Studio 1'}
+                  value={editData.room || 'Production 1'}
                   onChange={(e) => setEditData({ ...editData, room: e.target.value })}
                 >
-                  <option value="Studio 1">Studio 1</option>
-                  <option value="Studio 2">Studio 2</option>
-                  <option value="Studio 3">Studio 3</option>
+                  <option value="Production 1">Production 1</option>
+                  <option value="Production 2">Production 2</option>
+                  <option value="Production 3">Production 3</option>
                   <option value="Zoom">Zoom</option>
                   <option value="None">None</option>
                 </select>

@@ -16,7 +16,7 @@ export default function GuestFormModal({ onClose }) {
         website: '',
         expertise: EXPERTISE_OPTIONS[0],
         team: 'Premier Christian Radio',
-        room: 'Radio Studio 1',
+        room: 'Production 1',
         interviewBrief: '',
         status: 'Pending',
         isTBC: false,
@@ -256,9 +256,9 @@ export default function GuestFormModal({ onClose }) {
                             value={formData.room}
                             onChange={(e) => setFormData({ ...formData, room: e.target.value })}
                         >
-                            <option value="Radio Studio 1">Radio Studio 1</option>
-                            <option value="Radio Studio 2">Radio Studio 2</option>
-                            <option value="Radio Studio 3">Radio Studio 3</option>
+                            <option value="Production 1">Production 1</option>
+                            <option value="Production 2">Production 2</option>
+                            <option value="Production 3">Production 3</option>
                             <option value="Podcast Studio">Podcast Studio</option>
                             <option value="PCR Radio Room">PCR Radio Room</option>
                             <option value="Praise Radio Room">Praise Radio Room</option>

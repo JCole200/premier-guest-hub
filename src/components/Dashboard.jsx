@@ -377,9 +377,9 @@ export default function Dashboard({ activeTab }) {
                                         onChange={(e) => setSideRoomFilter(e.target.value)}
                                     >
                                         <option value="All">All Rooms</option>
-                                        <option value="Radio Studio 1">Radio Studio 1</option>
-                                        <option value="Radio Studio 2">Radio Studio 2</option>
-                                        <option value="Radio Studio 3">Radio Studio 3</option>
+                                        <option value="Production 1">Production 1</option>
+                                        <option value="Production 2">Production 2</option>
+                                        <option value="Production 3">Production 3</option>
                                         <option value="Podcast Studio">Podcast Studio</option>
                                         <option value="PCR Radio Room">PCR Radio Room</option>
                                         <option value="Praise Radio Room">Praise Radio Room</option>
@@ -809,12 +809,12 @@ export default function Dashboard({ activeTab }) {
                                 <label className="label">Room Required</label>
                                 <select
                                     className="input-field"
-                                    value={editData.room || 'Radio Studio 1'}
+                                    value={editData.room || 'Production 1'}
                                     onChange={(e) => setEditData({ ...editData, room: e.target.value })}
                                 >
-                                    <option value="Radio Studio 1">Radio Studio 1</option>
-                                    <option value="Radio Studio 2">Radio Studio 2</option>
-                                    <option value="Radio Studio 3">Radio Studio 3</option>
+                                    <option value="Production 1">Production 1</option>
+                                    <option value="Production 2">Production 2</option>
+                                    <option value="Production 3">Production 3</option>
                                     <option value="Podcast Studio">Podcast Studio</option>
                                     <option value="PCR Radio Room">PCR Radio Room</option>
                                     <option value="Praise Radio Room">Praise Radio Room</option>
