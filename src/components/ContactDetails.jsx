@@ -4,7 +4,7 @@ import { useAppContext } from '../AppContext';
 import { format, parseISO } from 'date-fns';
 
 export default function ContactDetails() {
-    const { guests } = useAppContext();
+    const { guests, setActiveTab, setHighlightedGuestId } = useAppContext();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('latest'); // latest, nameAsc, nameDesc
     const [selectedGuest, setSelectedGuest] = useState(null);
@@ -182,7 +182,26 @@ export default function ContactDetails() {
                                         </div>
                                     </td>
                                     <td>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                        <div 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (guest.eventDate) {
+                                                    setHighlightedGuestId(guest.id);
+                                                    setActiveTab('calendar');
+                                                }
+                                            }}
+                                            style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                gap: '0.5rem', 
+                                                fontSize: '0.85rem',
+                                                cursor: guest.eventDate ? 'pointer' : 'default',
+                                                color: guest.eventDate ? 'var(--color-primary)' : 'inherit',
+                                                fontWeight: guest.eventDate ? '600' : 'normal',
+                                                textDecoration: guest.eventDate ? 'underline' : 'none'
+                                            }}
+                                            title={guest.eventDate ? "View in Master Calendar" : ""}
+                                        >
                                             <CalendarIcon size={14} style={{ opacity: 0.6 }} />
                                             {guest.isTBC ? (
                                                 <span style={{ color: '#f59e0b', fontWeight: '600' }}>Date TBC</span>

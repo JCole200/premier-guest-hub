@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, isSameMonth, addWeeks, subWeeks, addMonths, subMonths, parseISO, setMonth, setYear, getMonth, getYear } from 'date-fns';
 import { Check, X, Clock, Video, Radio as RadioIcon, BookOpen, SearchX, ChevronLeft, ChevronRight, Pencil, CalendarDays, User, MapPin, Sparkles, Mic } from 'lucide-react';
 import { useAppContext } from '../AppContext';
 
 export default function Dashboard({ activeTab }) {
-    const { guests, searchQuery, updateGuestStatus, updateGuest } = useAppContext();
+    const { guests, searchQuery, updateGuestStatus, updateGuest, highlightedGuestId, setHighlightedGuestId } = useAppContext();
     const [crossPolModal, setCrossPolModal] = useState({ isOpen: false, guestId: null });
     const [crossPolData, setCrossPolData] = useState({ crossPollination: null, notes: '' });
     const [viewMode, setViewMode] = useState('week');
@@ -12,6 +12,24 @@ export default function Dashboard({ activeTab }) {
     const [editModal, setEditModal] = useState({ isOpen: false, guest: null });
     const [editData, setEditData] = useState({});
     const [selectedGuest, setSelectedGuest] = useState(null);
+    
+    // Handle jump-to-guest from Contact Details
+    useEffect(() => {
+        if (highlightedGuestId && activeTab === 'calendar') {
+            const guest = guests.find(g => g.id === highlightedGuestId);
+            if (guest && guest.eventDate) {
+                setCurrentDate(parseISO(guest.eventDate));
+                setViewMode('week');
+                
+                // Clear the trigger but keep a local highlight state if needed
+                // For now we just let the CSS handle the highlight while the ID is present
+                const timer = setTimeout(() => {
+                    setHighlightedGuestId(null);
+                }, 5000);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [highlightedGuestId, activeTab, guests, setHighlightedGuestId]);
 
     // Sidebar filters
     const [sideSearch, setSideSearch] = useState('');
@@ -279,7 +297,7 @@ export default function Dashboard({ activeTab }) {
                                                 {dayGuests.map(g => (
                                                     <div
                                                         key={g.id}
-                                                        className="calendar-event"
+                                                        className={`calendar-event ${g.id === highlightedGuestId ? 'highlighted-guest' : ''}`}
                                                         style={{
                                                             backgroundColor: ['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(g.team) ? 'var(--color-dept-radio-bg)' :
                                                                 g.team === 'Digital' ? 'var(--color-dept-digital-bg)' :
@@ -291,7 +309,10 @@ export default function Dashboard({ activeTab }) {
                                                             cursor: 'pointer',
                                                         }}
                                                         title={`${g.slot} - Request by ${g.createdBy}`}
-                                                        onClick={() => setSelectedGuest(g)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedGuest(g);
+                                                        }}
                                                     >
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                             <strong style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</strong>
@@ -380,7 +401,7 @@ export default function Dashboard({ activeTab }) {
                                         </div>
                                     ) : (
                                         guestsToday.map(g => (
-                                            <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
+                                            <div key={g.id} className={`side-panel-card ${g.id === highlightedGuestId ? 'highlighted-guest' : ''}`} onClick={() => setSelectedGuest(g)}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
                                                     <div>
                                                         <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
@@ -409,7 +430,7 @@ export default function Dashboard({ activeTab }) {
                                         </div>
                                     ) : (
                                         guestsTomorrow.map(g => (
-                                            <div key={g.id} className="side-panel-card" onClick={() => setSelectedGuest(g)}>
+                                            <div key={g.id} className={`side-panel-card ${g.id === highlightedGuestId ? 'highlighted-guest' : ''}`} onClick={() => setSelectedGuest(g)}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
                                                     <div>
                                                         <strong style={{ fontSize: '0.9rem' }}>{g.name}</strong>
@@ -506,7 +527,7 @@ export default function Dashboard({ activeTab }) {
                             <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>Search Results in Master Calendar ({confirmedGuests.length})</h3>
                             <div className="dashboard-grid" style={{ opacity: 0.8 }}>
                                 {confirmedGuests.map(g => (
-                                    <div key={g.id} className="card" style={{ borderTop: `4px solid ${['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(g.team) ? 'var(--color-dept-radio)' : g.team === 'Digital' ? 'var(--color-dept-digital)' : 'var(--color-dept-magazine)'}` }}>
+                                    <div key={g.id} className={`card ${g.id === highlightedGuestId ? 'highlighted-guest' : ''}`} style={{ borderTop: `4px solid ${['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(g.team) ? 'var(--color-dept-radio)' : g.team === 'Digital' ? 'var(--color-dept-digital)' : 'var(--color-dept-magazine)'}` }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <strong>{g.name}</strong>
                                             {getDepartmentBadge(g.team)}

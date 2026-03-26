@@ -15,10 +15,10 @@ function App() {
     searchQuery, setSearchQuery,
     currentUser, setCurrentUser,
     isAdmin, isLoggedIn, logout,
-    updateGuest
+    updateGuest,
+    activeTab, setActiveTab
   } = useAppContext();
 
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [editModal, setEditModal] = useState({ isOpen: false, guest: null });

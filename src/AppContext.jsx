@@ -16,6 +16,8 @@ export const AppProvider = ({ children }) => {
     return localStorage.getItem('isLoggedIn') === 'true' ? 'Admin User' : '';
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [highlightedGuestId, setHighlightedGuestId] = useState(null);
 
   const login = (password) => {
     // Basic password for demo - in reality this would be more secure
@@ -157,7 +159,9 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider value={{
       guests, addGuest, updateGuestStatus, updateGuest, deleteGuest,
       currentUser, setCurrentUser, isAdmin, isLoggedIn, login, logout,
-      searchQuery, setSearchQuery
+      searchQuery, setSearchQuery,
+      activeTab, setActiveTab,
+      highlightedGuestId, setHighlightedGuestId
     }}>
       {children}
     </AppContext.Provider>

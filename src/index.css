@@ -277,6 +277,20 @@ body {
   animation: fadeIn 0.4s ease-out forwards;
 }
 
+@keyframes pulse-highlight {
+  0% { box-shadow: 0 0 0 0 rgba(59, 10, 110, 0.4); border-color: var(--color-primary); }
+  70% { box-shadow: 0 0 0 10px rgba(59, 10, 110, 0); border-color: var(--color-primary-light); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 10, 110, 0); border-color: var(--color-primary); }
+}
+
+.highlighted-guest {
+  animation: pulse-highlight 2s infinite;
+  border-width: 2px !important;
+  z-index: 10;
+  background-color: white !important;
+  transform: scale(1.05);
+}
+
 /* Avatar / User Selection */
 .user-selector {
   display: flex;
