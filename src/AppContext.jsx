@@ -18,18 +18,28 @@ export const AppProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [highlightedGuestId, setHighlightedGuestId] = useState(null);
+  const [authorizedUsers, setAuthorizedUsers] = useState([]);
 
-  const login = (password) => {
-    // Basic password for demo - in reality this would be more secure
-    if (password === 'admin123') {
-      setIsAdmin(true);
-      setIsLoggedIn(true);
-      setCurrentUser('Admin User');
-      localStorage.setItem('isAdmin', 'true');
-      localStorage.setItem('isLoggedIn', 'true');
-      return true;
+  const login = async (email, password) => {
+    const { data, error } = await supabase
+      .from('authorized_users')
+      .select('*')
+      .eq('email', email.toLowerCase())
+      .eq('password', password)
+      .single();
+
+    if (error || !data) {
+      console.error('Login failed:', error);
+      return false;
     }
-    return false;
+
+    setIsAdmin(data.is_admin);
+    setIsLoggedIn(true);
+    setCurrentUser(data.email);
+    localStorage.setItem('currentUserEmail', data.email);
+    localStorage.setItem('isAdmin', data.is_admin ? 'true' : 'false');
+    localStorage.setItem('isLoggedIn', 'true');
+    return true;
   };
 
   const logout = () => {
@@ -38,6 +48,7 @@ export const AppProvider = ({ children }) => {
     setCurrentUser('');
     localStorage.removeItem('isAdmin');
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('currentUserEmail');
   };
 
   useEffect(() => {
@@ -54,10 +65,24 @@ export const AppProvider = ({ children }) => {
       }
     };
 
-    fetchGuests();
+    const fetchAuthorizedUsers = async () => {
+      const { data, error } = await supabase
+        .from('authorized_users')
+        .select('*')
+        .order('created_at', { ascending: true });
+        
+      if (error) {
+        console.error('Error fetching authorized users:', error);
+      } else if (data) {
+        setAuthorizedUsers(data);
+      }
+    };
 
-    const channel = supabase
-      .channel('schema-db-changes')
+    fetchGuests();
+    fetchAuthorizedUsers();
+
+    const guestsChannel = supabase
+      .channel('guests-changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'guests' },
@@ -76,13 +101,53 @@ export const AppProvider = ({ children }) => {
       )
       .subscribe();
 
+    const usersChannel = supabase
+      .channel('users-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'authorized_users' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setAuthorizedUsers(prev => [...prev, payload.new]);
+          } else if (payload.eventType === 'DELETE') {
+            setAuthorizedUsers(prev => prev.filter(u => u.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(guestsChannel);
+      supabase.removeChannel(usersChannel);
     };
   }, []);
 
+  const addAuthorizedUser = async (email, password, isAdmin = false) => {
+    const { data, error } = await supabase
+      .from('authorized_users')
+      .insert([{ email: email.toLowerCase(), password, is_admin: isAdmin }])
+      .select();
+    
+    if (error) {
+      console.error('Error adding user:', error);
+      throw error;
+    }
+  };
+
+  const deleteAuthorizedUser = async (id) => {
+    const { error } = await supabase
+      .from('authorized_users')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  };
+
   const addGuest = async (guest) => {
-    const bookerName = guest.submittedBy || 'Staff Member';
+    const bookerName = currentUser || 'Staff Member';
     
     // Map frontend field 'interviewBrief' to database column 'slot'
     const dbGuest = {
@@ -161,7 +226,8 @@ export const AppProvider = ({ children }) => {
       currentUser, setCurrentUser, isAdmin, isLoggedIn, login, logout,
       searchQuery, setSearchQuery,
       activeTab, setActiveTab,
-      highlightedGuestId, setHighlightedGuestId
+      highlightedGuestId, setHighlightedGuestId,
+      authorizedUsers, addAuthorizedUser, deleteAuthorizedUser
     }}>
       {children}
     </AppContext.Provider>

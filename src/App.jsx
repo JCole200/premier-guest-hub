@@ -20,9 +20,36 @@ function App() {
   } = useAppContext();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isAdminAuthModalOpen, setIsAdminAuthModalOpen] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminAuthError, setAdminAuthError] = useState('');
+  const [isMasterAdminAuthenticated, setIsMasterAdminAuthenticated] = useState(() => {
+    return sessionStorage.getItem('isMasterAdminAuthenticated') === 'true';
+  });
   const [editModal, setEditModal] = useState({ isOpen: false, guest: null });
   const [editData, setEditData] = useState({});
+
+  const handleAdminAccess = () => {
+    if (isMasterAdminAuthenticated) {
+      setActiveTab('admin');
+    } else {
+      setIsAdminAuthModalOpen(true);
+    }
+  };
+
+  const handleAdminAuthSubmit = (e) => {
+    e.preventDefault();
+    if (adminPassword === 'PremierMasterAdmin2026!') {
+      setIsMasterAdminAuthenticated(true);
+      sessionStorage.setItem('isMasterAdminAuthenticated', 'true');
+      setIsAdminAuthModalOpen(false);
+      setActiveTab('admin');
+      setAdminPassword('');
+      setAdminAuthError('');
+    } else {
+      setAdminAuthError('Invalid Master Admin Password.');
+    }
+  };
 
   const handleEditGuest = (guest) => {
     setEditData({ 
@@ -44,8 +71,14 @@ function App() {
 
   const handleLogout = () => {
     logout();
+    sessionStorage.removeItem('isMasterAdminAuthenticated');
+    setIsMasterAdminAuthenticated(false);
     setActiveTab('dashboard');
   };
+
+  if (!isLoggedIn) {
+    return <Login />;
+  }
 
   return (
     <div className="app-container">
@@ -87,16 +120,14 @@ function App() {
             Contact Details
           </button>
 
-          {isLoggedIn && (
-            <button
-              className={`nav-link w-full text-left ${activeTab === 'admin' ? 'active' : ''}`}
-              onClick={() => setActiveTab('admin')}
-              style={{ width: '100%', background: activeTab === 'admin' ? '' : 'transparent', border: 'none', cursor: 'pointer', marginTop: '1rem', color: 'var(--color-primary)' }}
-            >
-              <Shield size={20} />
-              Admin Management
-            </button>
-          )}
+          <button
+            className={`nav-link w-full text-left ${activeTab === 'admin' ? 'active' : ''}`}
+            onClick={handleAdminAccess}
+            style={{ width: '100%', background: activeTab === 'admin' ? '' : 'transparent', border: 'none', cursor: 'pointer', marginTop: '1rem', color: 'var(--color-primary)' }}
+          >
+            <Shield size={20} />
+            Admin Management
+          </button>
         </nav>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #e5e7eb', paddingTop: '1.5rem' }}>
@@ -105,37 +136,25 @@ function App() {
             New Request
           </button>
 
-          {!isLoggedIn ? (
-            <button
-              onClick={() => setIsLoginOpen(true)}
-              className="btn btn-outline"
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-            >
-              <LogIn size={18} />
-              Admin Login
-            </button>
-          ) : (
-            <div className="user-info" style={{ marginBottom: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--color-bg-light)', borderRadius: '12px' }}>
-                <div className="avatar" style={{ width: '32px', height: '32px', minWidth: '32px', fontSize: '0.8rem' }}>
-                  AU
-                </div>
-                <div style={{ overflow: 'hidden' }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Administrator</div>
-                </div>
+          <div className="user-info" style={{ marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--color-bg-light)', borderRadius: '12px' }}>
+              <div className="avatar" style={{ width: '32px', height: '32px', minWidth: '32px', fontSize: '0.8rem', background: 'var(--color-primary)', color: 'white' }}>
+                {currentUser ? currentUser[0].toUpperCase() : 'U'}
               </div>
-              <button
-                onClick={handleLogout}
-                className="btn-outline"
-                style={{ width: '100%', marginTop: '0.5rem', border: 'none', fontSize: '0.85rem', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-              >
-                <LogOut size={16} />
-                Sign Out
-              </button>
+              <div style={{ overflow: 'hidden' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser || 'Staff Member'}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{isAdmin ? 'Administrator' : 'Authorized User'}</div>
+              </div>
             </div>
-          )}
-
+            <button
+              onClick={handleLogout}
+              className="btn-outline"
+              style={{ width: '100%', marginTop: '0.5rem', border: 'none', fontSize: '0.85rem', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+            >
+              <LogOut size={16} />
+              Sign Out
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -167,7 +186,7 @@ function App() {
           </div>
         </header>
 
-        {activeTab === 'admin' ? (
+        {activeTab === 'admin' && isMasterAdminAuthenticated ? (
           <AdminPortal onEditGuest={handleEditGuest} />
         ) : activeTab === 'contacts' ? (
           <ContactDetails />
@@ -179,15 +198,38 @@ function App() {
       {/* Intake Form Modal */}
       {isModalOpen && <GuestFormModal onClose={() => setIsModalOpen(false)} />}
 
-      {/* Login Modal */}
-      {isLoginOpen && (
-        <Login
-          onLoginSuccess={() => {
-            setIsLoginOpen(false);
-            setActiveTab('admin');
-          }}
-          onClose={() => setIsLoginOpen(false)}
-        />
+      {/* Admin Secondary Password Modal */}
+      {isAdminAuthModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 2000 }}>
+          <div className="modal-content animate-fade-in" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Shield size={20} /> Admin Verification
+              </h3>
+              <button onClick={() => setIsAdminAuthModalOpen(false)} className="btn-outline" style={{ border: 'none' }}><X size={20} /></button>
+            </div>
+            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+              Please enter the Master Admin Password to continue.
+            </p>
+            <form onSubmit={handleAdminAuthSubmit}>
+              <div className="form-group">
+                <input
+                  type="password"
+                  className="input-field"
+                  placeholder="Master Admin Password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+              {adminAuthError && (
+                <p style={{ color: '#dc2626', fontSize: '0.85rem', marginBottom: '1rem' }}>{adminAuthError}</p>
+              )}
+              <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Verify & Access Admin</button>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Edit Modal (Admin Portal) */}
