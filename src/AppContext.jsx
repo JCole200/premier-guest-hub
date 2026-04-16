@@ -72,14 +72,15 @@ export const AppProvider = ({ children }) => {
 
   const mapGuestToFrontend = (guest) => {
     if (!guest) return null;
+    // The DB uses camelCase for most fields, so we just ensure they exist
     return {
       ...guest,
-      eventDate: guest.event_date || guest.eventDate,
-      broadcastDate: guest.broadcast_date || guest.broadcastDate,
-      isTBC: guest.is_tbc !== undefined ? guest.is_tbc : guest.isTBC,
-      createdBy: guest.created_by || guest.createdBy,
-      crossPollination: guest.cross_pollination !== undefined ? guest.cross_pollination : guest.crossPollination,
-      socialHandle: guest.social_handle || guest.socialHandle,
+      eventDate: guest.eventDate,
+      broadcastDate: guest.broadcastDate,
+      isTBC: guest.isTBC,
+      createdBy: guest.createdBy,
+      crossPollination: guest.crossPollination,
+      socialHandle: guest.socialHandle || guest.social_handle, // Support both just in case
     };
   };
 
@@ -87,23 +88,17 @@ export const AppProvider = ({ children }) => {
     if (!guest) return null;
     const mapped = {
       ...guest,
-      event_date: guest.eventDate,
-      broadcast_date: guest.broadcastDate,
-      is_tbc: guest.isTBC,
-      created_by: guest.createdBy,
-      cross_pollination: guest.crossPollination,
-      social_handle: guest.socialHandle,
-      // Ensure interviewBrief is mapped to slot
+      // Database uses camelCase
+      eventDate: guest.eventDate,
+      broadcastDate: guest.broadcastDate,
+      isTBC: guest.isTBC,
+      createdBy: guest.createdBy,
+      crossPollination: guest.crossPollination,
+      socialHandle: guest.socialHandle,
       slot: guest.interviewBrief || guest.slot || '',
     };
     
-    // Clean up frontend-only or camelCase fields that have snake_case equivalents
-    delete mapped.eventDate;
-    delete mapped.broadcastDate;
-    delete mapped.isTBC;
-    delete mapped.createdBy;
-    delete mapped.crossPollination;
-    delete mapped.socialHandle;
+    // Clean up frontend-only fields
     delete mapped.submittedBy;
     delete mapped.interviewBrief;
     
@@ -229,11 +224,8 @@ export const AppProvider = ({ children }) => {
   };
 
   const updateGuestStatus = async (id, status, extraData = {}) => {
-    // Map extraData keys if they contain camelCase
-    const mappedExtra = {};
-    if (extraData.eventDate) mappedExtra.event_date = extraData.eventDate;
-    if (extraData.crossPollination !== undefined) mappedExtra.cross_pollination = extraData.crossPollination;
-    if (extraData.notes) mappedExtra.notes = extraData.notes;
+    // Map extraData keys - DB uses camelCase
+    const mappedExtra = { ...extraData };
 
     const { data, error } = await supabase
       .from('guests')
