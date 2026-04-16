@@ -197,7 +197,7 @@ export default function Dashboard({ activeTab }) {
             {activeTab === 'calendar' ? (
                 <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                        <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600' }}>Master Schedule (Confirmed Guests)</h3>
+                        <h3 style={{ color: 'var(--color-primary-dark)', fontSize: '1.2rem', fontWeight: '600' }}>Master Schedule</h3>
 
                         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                             <div style={{ display: 'flex', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
@@ -262,7 +262,7 @@ export default function Dashboard({ activeTab }) {
                             {filteredGuests.length === 0 && (
                                 <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                                     <SearchX size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                                    <p>No confirmed guests match your search.</p>
+                                    <p>No guests match your search.</p>
                                 </div>
                             )}
 
@@ -276,7 +276,7 @@ export default function Dashboard({ activeTab }) {
 
                             <div className="calendar" style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
                                 {calendarDays.map((date, i) => {
-                                    const dayGuests = confirmedGuests.filter(g => {
+                                    const dayGuests = filteredGuests.filter(g => {
                                         const eventD = g.eventDate ? parseISO(g.eventDate) : (g.timestamp ? parseISO(g.timestamp) : new Date());
                                         return isSameDay(eventD, date);
                                     });
@@ -297,7 +297,7 @@ export default function Dashboard({ activeTab }) {
                                                 {dayGuests.map(g => (
                                                     <div
                                                         key={g.id}
-                                                        className={`calendar-event ${g.id === highlightedGuestId ? 'highlighted-guest' : ''}`}
+                                                        className={`calendar-event ${g.id === highlightedGuestId ? 'highlighted-guest' : ''} ${g.status !== 'Confirmed' ? 'calendar-event-pending' : ''}`}
                                                         style={{
                                                             backgroundColor: ['Radio', 'Premier Christian Radio', 'Premier Praise', 'Premier Gospel'].includes(g.team) ? 'var(--color-dept-radio-bg)' :
                                                                 g.team === 'Digital' ? 'var(--color-dept-digital-bg)' :

@@ -70,6 +70,46 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem('currentUserEmail');
   };
 
+  const mapGuestToFrontend = (guest) => {
+    if (!guest) return null;
+    return {
+      ...guest,
+      eventDate: guest.event_date || guest.eventDate,
+      broadcastDate: guest.broadcast_date || guest.broadcastDate,
+      isTBC: guest.is_tbc !== undefined ? guest.is_tbc : guest.isTBC,
+      createdBy: guest.created_by || guest.createdBy,
+      crossPollination: guest.cross_pollination !== undefined ? guest.cross_pollination : guest.crossPollination,
+      socialHandle: guest.social_handle || guest.socialHandle,
+    };
+  };
+
+  const mapGuestToDB = (guest) => {
+    if (!guest) return null;
+    const mapped = {
+      ...guest,
+      event_date: guest.eventDate,
+      broadcast_date: guest.broadcastDate,
+      is_tbc: guest.isTBC,
+      created_by: guest.createdBy,
+      cross_pollination: guest.crossPollination,
+      social_handle: guest.socialHandle,
+      // Ensure interviewBrief is mapped to slot
+      slot: guest.interviewBrief || guest.slot || '',
+    };
+    
+    // Clean up frontend-only or camelCase fields that have snake_case equivalents
+    delete mapped.eventDate;
+    delete mapped.broadcastDate;
+    delete mapped.isTBC;
+    delete mapped.createdBy;
+    delete mapped.crossPollination;
+    delete mapped.socialHandle;
+    delete mapped.submittedBy;
+    delete mapped.interviewBrief;
+    
+    return mapped;
+  };
+
   useEffect(() => {
     const fetchGuests = async () => {
       const { data, error } = await supabase
@@ -80,7 +120,7 @@ export const AppProvider = ({ children }) => {
       if (error) {
         console.error('Error fetching guests:', error);
       } else if (data) {
-        setGuests(data);
+        setGuests(data.map(mapGuestToFrontend));
       }
     };
 
@@ -107,12 +147,14 @@ export const AppProvider = ({ children }) => {
         { event: '*', schema: 'public', table: 'guests' },
         (payload) => {
           if (payload.eventType === 'INSERT') {
+            const mappedNew = mapGuestToFrontend(payload.new);
             setGuests(prev => {
-              if (prev.some(g => g.id === payload.new.id)) return prev;
-              return [payload.new, ...prev].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+              if (prev.some(g => g.id === mappedNew.id)) return prev;
+              return [mappedNew, ...prev].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
             });
           } else if (payload.eventType === 'UPDATE') {
-            setGuests(prev => prev.map(g => g.id === payload.new.id ? payload.new : g));
+            const mappedNew = mapGuestToFrontend(payload.new);
+            setGuests(prev => prev.map(g => g.id === mappedNew.id ? mappedNew : g));
           } else if (payload.eventType === 'DELETE') {
             setGuests(prev => prev.filter(g => g.id !== payload.old.id));
           }
@@ -168,50 +210,47 @@ export const AppProvider = ({ children }) => {
   const addGuest = async (guest) => {
     const bookerName = currentUser || 'Staff Member';
     
-    // Map frontend field 'interviewBrief' to database column 'slot'
-    const dbGuest = {
+    const dbGuest = mapGuestToDB({
       ...guest,
-      slot: guest.interviewBrief || guest.slot || '',
       timestamp: new Date().toISOString(),
-      createdBy: bookerName
-    };
-    
-    // Remove frontend-only or renamed fields before database insertion
-    delete dbGuest.submittedBy;
-    delete dbGuest.interviewBrief;
+      createdBy: guest.submittedBy || bookerName
+    });
     
     const { data, error } = await supabase.from('guests').insert([dbGuest]).select();
     if (error) {
       console.error('Error adding guest:', error);
     } else if (data) {
+      const mappedResult = mapGuestToFrontend(data[0]);
       setGuests(prev => {
-        if (prev.some(g => g.id === data[0].id)) return prev;
-        return [data[0], ...prev];
+        if (prev.some(g => g.id === mappedResult.id)) return prev;
+        return [mappedResult, ...prev];
       });
     }
   };
 
   const updateGuestStatus = async (id, status, extraData = {}) => {
+    // Map extraData keys if they contain camelCase
+    const mappedExtra = {};
+    if (extraData.eventDate) mappedExtra.event_date = extraData.eventDate;
+    if (extraData.crossPollination !== undefined) mappedExtra.cross_pollination = extraData.crossPollination;
+    if (extraData.notes) mappedExtra.notes = extraData.notes;
+
     const { data, error } = await supabase
       .from('guests')
-      .update({ status, ...extraData })
+      .update({ status, ...mappedExtra })
       .eq('id', id)
       .select();
       
     if (error) {
       console.error('Error updating status:', error);
     } else if (data) {
-      setGuests(prev => prev.map(g => g.id === id ? data[0] : g));
+      const mappedResult = mapGuestToFrontend(data[0]);
+      setGuests(prev => prev.map(g => g.id === id ? mappedResult : g));
     }
   };
 
   const updateGuest = async (updatedGuest) => {
-    // Map frontend field 'interviewBrief' to database column 'slot'
-    const dbGuest = {
-      ...updatedGuest,
-      slot: updatedGuest.interviewBrief || updatedGuest.slot || ''
-    };
-    delete dbGuest.interviewBrief;
+    const dbGuest = mapGuestToDB(updatedGuest);
 
     const { data, error } = await supabase
       .from('guests')
@@ -222,7 +261,8 @@ export const AppProvider = ({ children }) => {
     if (error) {
       console.error('Error updating guest:', error);
     } else if (data) {
-      setGuests(prev => prev.map(g => g.id === updatedGuest.id ? data[0] : g));
+      const mappedResult = mapGuestToFrontend(data[0]);
+      setGuests(prev => prev.map(g => g.id === updatedGuest.id ? mappedResult : g));
     }
   };
 
