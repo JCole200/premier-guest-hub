@@ -86,23 +86,25 @@ export const AppProvider = ({ children }) => {
 
   const mapGuestToDB = (guest) => {
     if (!guest) return null;
-    const mapped = {
-      ...guest,
-      // Database uses camelCase
+    // Only include columns that actually exist in the DB.
+    // The DB schema is: id, name, email, phone, team, room, slot, status,
+    // crossPollination, notes, eventDate, broadcastDate, isTBC, createdBy, timestamp
+    return {
+      name: guest.name,
+      email: guest.email,
+      phone: guest.phone,
+      team: guest.team,
+      room: guest.room,
+      slot: guest.interviewBrief || guest.slot || '',
+      status: guest.status,
+      crossPollination: guest.crossPollination,
+      notes: guest.notes,
       eventDate: guest.eventDate,
       broadcastDate: guest.broadcastDate,
       isTBC: guest.isTBC,
       createdBy: guest.createdBy,
-      crossPollination: guest.crossPollination,
-      socialHandle: guest.socialHandle,
-      slot: guest.interviewBrief || guest.slot || '',
+      timestamp: guest.timestamp,
     };
-    
-    // Clean up frontend-only fields
-    delete mapped.submittedBy;
-    delete mapped.interviewBrief;
-    
-    return mapped;
   };
 
   useEffect(() => {
