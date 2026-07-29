@@ -1,7 +1,110 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, ChevronDown, Check } from 'lucide-react';
 import { useAppContext } from '../AppContext';
 import { EXPERTISE_OPTIONS } from '../constants';
+
+// --- Reusable multi-select for Expertise ---
+function ExpertiseMultiSelect({ selected, onChange }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const toggle = (option) => {
+        if (selected.includes(option)) {
+            onChange(selected.filter(s => s !== option));
+        } else {
+            onChange([...selected, option]);
+        }
+    };
+
+    const displayText = selected.length === 0
+        ? 'Select expertise areas...'
+        : selected.length === 1
+        ? selected[0]
+        : `${selected[0]} +${selected.length - 1} more`;
+
+    return (
+        <div ref={ref} style={{ position: 'relative' }}>
+            <button
+                type="button"
+                onClick={() => setOpen(o => !o)}
+                className="input-field"
+                style={{
+                    width: '100%', textAlign: 'left', display: 'flex',
+                    justifyContent: 'space-between', alignItems: 'center',
+                    cursor: 'pointer', background: 'white'
+                }}
+            >
+                <span style={{ color: selected.length === 0 ? 'var(--color-text-muted)' : 'var(--color-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {displayText}
+                </span>
+                <ChevronDown size={16} style={{ flexShrink: 0, marginLeft: '0.5rem', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            </button>
+
+            {open && (
+                <div style={{
+                    position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+                    background: 'white', border: '1px solid #e5e7eb', borderRadius: '10px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 500,
+                    maxHeight: '220px', overflowY: 'auto'
+                }}>
+                    {EXPERTISE_OPTIONS.map(option => {
+                        const checked = selected.includes(option);
+                        return (
+                            <div
+                                key={option}
+                                onClick={() => toggle(option)}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.75rem',
+                                    padding: '0.6rem 1rem', cursor: 'pointer',
+                                    background: checked ? 'var(--color-bg-light)' : 'white',
+                                    transition: 'background 0.15s'
+                                }}
+                                onMouseEnter={e => { if (!checked) e.currentTarget.style.background = '#f9fafb'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = checked ? 'var(--color-bg-light)' : 'white'; }}
+                            >
+                                <div style={{
+                                    width: '18px', height: '18px', borderRadius: '4px', flexShrink: 0,
+                                    border: checked ? '2px solid var(--color-primary)' : '2px solid #d1d5db',
+                                    background: checked ? 'var(--color-primary)' : 'white',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.15s'
+                                }}>
+                                    {checked && <Check size={11} color="white" strokeWidth={3} />}
+                                </div>
+                                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-main)' }}>{option}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {selected.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.5rem' }}>
+                    {selected.map(s => (
+                        <span key={s} style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                            background: 'var(--color-bg-light)', border: '1px solid #e5e7eb',
+                            borderRadius: '99px', padding: '0.2rem 0.6rem',
+                            fontSize: '0.75rem', color: 'var(--color-primary-dark)', fontWeight: '500'
+                        }}>
+                            {s}
+                            <button type="button" onClick={(e) => { e.stopPropagation(); toggle(s); }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'var(--color-text-muted)' }}>
+                                <X size={11} />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function GuestFormModal({ onClose }) {
     const { addGuest } = useAppContext();
@@ -14,7 +117,7 @@ export default function GuestFormModal({ onClose }) {
         phone: '',
         socialHandle: '',
         website: '',
-        expertise: EXPERTISE_OPTIONS[0],
+        expertise: [],
         team: 'Premier Christian Radio',
         room: 'Production 1',
         interviewBrief: '',
@@ -38,7 +141,7 @@ export default function GuestFormModal({ onClose }) {
             setShowCrossPol(true);
             return; // Wait for cross pollination answer
         }
-        addGuest(formData);
+        addGuest({ ...formData, expertise: Array.isArray(formData.expertise) ? formData.expertise.join(', ') : formData.expertise });
         onClose();
     };
 
@@ -52,7 +155,7 @@ export default function GuestFormModal({ onClose }) {
 
     const submitFinal = (e) => {
         e.preventDefault();
-        addGuest(formData);
+        addGuest({ ...formData, expertise: Array.isArray(formData.expertise) ? formData.expertise.join(', ') : formData.expertise });
         onClose();
     };
 
@@ -173,16 +276,11 @@ export default function GuestFormModal({ onClose }) {
                     </div>
 
                     <div className="form-group">
-                        <label className="label">Expertise</label>
-                        <select
-                            className="input-field"
-                            value={formData.expertise}
-                            onChange={(e) => setFormData({ ...formData, expertise: e.target.value })}
-                        >
-                            {EXPERTISE_OPTIONS.map(option => (
-                                <option key={option} value={option}>{option}</option>
-                            ))}
-                        </select>
+                        <label className="label">Expertise <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(select all that apply)</span></label>
+                        <ExpertiseMultiSelect
+                            selected={formData.expertise}
+                            onChange={(val) => setFormData({ ...formData, expertise: val })}
+                        />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -408,7 +506,9 @@ export default function GuestFormModal({ onClose }) {
                     </div>
 
                     <div className="form-group">
-                        <label className="label">Interview brief</label>
+                        <label className="label">
+                            Interview brief <span style={{ color: '#dc2626', fontWeight: '700' }}>*</span>
+                        </label>
                         <input
                             type="text"
                             className="input-field"
@@ -416,6 +516,7 @@ export default function GuestFormModal({ onClose }) {
                             value={formData.interviewBrief}
                             onChange={(e) => setFormData({ ...formData, interviewBrief: e.target.value })}
                             required
+                            minLength={3}
                         />
                     </div>
 
