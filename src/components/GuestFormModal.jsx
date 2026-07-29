@@ -302,9 +302,20 @@ export default function GuestFormModal({ onClose }) {
                                 className="input-field"
                                 placeholder="+44 7123 456789"
                                 value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                onChange={(e) => {
+                                    // Only allow digits, +, spaces, hyphens, parentheses
+                                    const sanitised = e.target.value.replace(/[^0-9+\s\-().]/g, '');
+                                    setFormData({ ...formData, phone: sanitised });
+                                }}
+                                pattern="[0-9+\s\-().]{7,20}"
+                                title="Please enter a valid phone number (digits, +, spaces, hyphens only)"
                                 required
                             />
+                            {formData.phone && !/^[0-9+\s\-().]{7,20}$/.test(formData.phone) && (
+                                <p style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.35rem' }}>
+                                    Please enter a valid phone number (numbers only, min 7 digits)
+                                </p>
+                            )}
                         </div>
                     </div>
 
